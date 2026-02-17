@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - Système IoT</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand"> Système IoT</div>
+        <div class="nav-menu">
+            <a href="dashboard.html">Tableau de bord</a>
+            <a href="profile.html" class="active">Profil</a>
+            <a href="admin.html" id="adminLink" style="display: none;">Administration</a>
+            <a href="#" id="logoutBtn">Déconnexion</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>👤 Mon Profil</h1>
+        </div>
+
+        <div class="card">
+            <h2>Informations personnelles</h2>
+            <div id="profileInfo">
+                <div class="profile-item">
+                    <span class="label">Nom d'utilisateur:</span>
+                    <span id="profileUsername">--</span>
+                </div>
+                <div class="profile-item">
+                    <span class="label">Email:</span>
+                    <span id="profileEmail">--</span>
+                </div>
+                <div class="profile-item">
+                    <span class="label">Rôle:</span>
+                    <span id="profileRole" class="badge">--</span>
+                </div>
+                <div class="profile-item">
+                    <span class="label">Membre depuis:</span>
+                    <span id="profileCreated">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2> Mes Devices</h2>
+            <div id="userDevices">
+                <p class="empty-state">Aucun device associé</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Réalisé par Vaneza Gaytan</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        
+        // Vérification de l'authentification
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Déconnexion
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+
+        // Charger le profil
+        async function loadProfile() {
+            try {
+                const response = await apiCall('/api/user/profile', 'GET');
+                
+                if (response.success) {
+                    const user = response.user;
+                    
+                    document.getElementById('profileUsername').textContent = user.username;
+                    document.getElementById('profileEmail').textContent = user.email;
+                    document.getElementById('profileRole').textContent = user.role;
+                    document.getElementById('profileRole').className = 
+                        `badge ${user.role === 'admin' ? 'badge-admin' : 'badge-user'}`;
+                    
+                    const date = new Date(user.createdAt);
+                    document.getElementById('profileCreated').textContent = 
+                        date.toLocaleDateString('fr-FR');
+
+                    // Afficher les devices
+                    if (user.devices && user.devices.length > 0) {
+                        const devicesHtml = user.devices.map(d => `
+                            <div class="device-badge">${d}</div>
+                        `).join('');
+                        document.getElementById('userDevices').innerHTML = devicesHtml;
+                    }
+
+                    // Afficher le lien admin si nécessaire
+                    if (user.role === 'admin') {
+                        document.getElementById('adminLink').style.display = 'inline';
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                if (error.message.includes('401')) {
+                    window.location.href = 'error.html?error=expired';
+                }
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

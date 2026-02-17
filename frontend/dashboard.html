@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Système IoT</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🌐 Système IoT</div>
+        <div class="nav-menu">
+            <a href="dashboard.html" class="active">Tableau de bord</a>
+            <a href="profile.html">Profil</a>
+            <a href="admin.html" id="adminLink" style="display: none;">Administration</a>
+            <a href="#" id="logoutBtn">Déconnexion</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>📊 Tableau de bord</h1>
+            <p id="welcomeMessage">Bienvenue</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">📱</span>
+                <div class="stat-info">
+                    <h3 id="deviceCount">0</h3>
+                    <p>Devices connectés</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">📊</span>
+                <div class="stat-info">
+                    <h3 id="measurementCount">0</h3>
+                    <p>Mesures aujourd'hui</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🌡️</span>
+                <div class="stat-info">
+                    <h3 id="avgTemp">--</h3>
+                    <p>Température moyenne</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔍 Filtrer les mesures</h2>
+            <div class="filter-form">
+                <select id="deviceFilter" class="form-control">
+                    <option value="">Tous les devices</option>
+                </select>
+                <input type="number" id="limitFilter" class="form-control" placeholder="Limite" value="50">
+                <button onclick="loadMeasurements()" class="btn btn-primary">Actualiser</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📈 Dernières mesures</h2>
+            <div id="loadingMessage">Chargement...</div>
+            <div id="measurementsTable" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>Valeur</th>
+                            <th>Unité</th>
+                            <th>Date/Heure</th>
+                        </tr>
+                    </thead>
+                    <tbody id="measurementsBody"></tbody>
+                </table>
+            </div>
+            <div id="noMeasurements" style="display: none;" class="empty-state">
+                Aucune mesure disponible
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Réalisé par Vaneza Gaytan</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

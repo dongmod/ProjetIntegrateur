@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur - Système IoT</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="error-box">
+            <div class="error-icon">⚠️</div>
+            <h1 id="errorTitle">Erreur</h1>
+            <p id="errorMessage">Une erreur est survenue</p>
+            
+            <div class="buton-groupe">
+                <a href="login.html" class="btn btn-primary">Retour à la connexion</a>
+                <a href="index.html" class="btn btn-secondary">Page d'accueil</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Réalisé par Vaneza Gaytan</p>
+    </footer>
+
+    <script>
+        // Récupérer le paramètre d'erreur de l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorType = urlParams.get('error');
+
+        const errorMessages = {
+            'expired': {
+                title: 'Session expirée',
+                message: 'Votre session a expiré. Veuillez vous reconnecter.'
+            },
+            'unauthorized': {
+                title: 'Accès refusé',
+                message: 'Vous n\'avez pas les permissions nécessaires pour accéder à cette page.'
+            },
+            'notfound': {
+                title: 'Page non trouvée',
+                message: 'La page que vous recherchez n\'existe pas.'
+            },
+            'server': {
+                title: 'Erreur serveur',
+                message: 'Une erreur serveur est survenue. Veuillez réessayer plus tard.'
+            }
+        };
+
+        if (errorType && errorMessages[errorType]) {
+            document.getElementById('errorTitle').textContent = errorMessages[errorType].title;
+            document.getElementById('errorMessage').textContent = errorMessages[errorType].message;
+        }
+    </script>
+</body>
+</html>

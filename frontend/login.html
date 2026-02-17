@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Système IoT</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="carte-bienvenue">
+            <h1> Connexion</h1>
+            
+            <form id="loginForm">
+                <div class="formulario">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required 
+                           placeholder="votre@email.com">
+                </div>
+
+                <div class="formulario">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <input type="password" class="form-control" id="password" name="password" required 
+                           placeholder="••••••••">
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <button type="submit" class="btn btn-primary btn-full">
+                    Se connecter
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p class="texto-centrado">Pas encore de compte ? <a href="signup.html">Créer un compte</a></p>
+                <p><a href="index.html">← Retour à l'accueil</a></p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Réalisé par Vaneza Gaytan</p>
+    </footer>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>
