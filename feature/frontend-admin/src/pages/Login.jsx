@@ -99,7 +99,7 @@ const Login = () => {
       }
 
       // 5) Accès OK (même portail pour les employés/gestionnaires)
-      alert(`Bienvenue ${profile.prenom} (${profile.role})`);
+      // alert(`Bienvenue ${profile.prenom} (${profile.role})`);
       navigate("/Dashboard");
       // navigate("/Dashboard");
 

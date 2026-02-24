@@ -1,23 +1,22 @@
-// import React from "react";
-// import Login from "./pages/login";
-
-// function App() {
-//   return <Login />;
-// } 
-
-// export default App;
-
-
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Login from "./pages/login"; // Assurez-vous que le chemin est correct
-import Dashboard from "./pages/Dashboard"; // crea este componente si no existe
+
+import Login from "./pages/login";
+import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }

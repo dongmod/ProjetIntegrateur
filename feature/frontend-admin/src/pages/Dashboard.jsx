@@ -1,30 +1,50 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
+import Header from "../components/Header";
 import { supabase } from "../lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const [session, setSession] = useState(null);
+  const navigate = useNavigate();
+  const [loadingPage, setLoadingPage] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log("SESSION DATA:", session);
-      console.log("SESSION ERROR:", error);
-      setSession(session);
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error || !data?.session) {
+        navigate("/", { replace: true });
+        return;
+      }
+
+      setLoadingPage(false);
     };
 
-    getSession();
-  }, []);
+    checkSession();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      alert("Erreur lors de la déconnexion");
+      return;
+    }
+
+    navigate("/", { replace: true });
+  };
+
+  if (loadingPage) {
+    return <p style={{ padding: "1rem" }}>Chargement du dashboard...</p>;
+  }
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      {session ? (
-        <p>Bienvenue, vous êtes connecté !</p>
-      ) : (
-        <p>Vous n'êtes pas connecté.</p>
-      )}
+      <Header title="Dashboard" subtitle="Bienvenue" onLogout={handleLogout} />
+      <main style={{ padding: "1rem" }}>
+        <p>Contenido del dashboard</p>
+      </main>
     </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
