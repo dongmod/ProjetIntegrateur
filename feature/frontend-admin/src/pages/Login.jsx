@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import  {useNavigate} from "react-router-dom";
 
 
 const Login = () => {
@@ -7,6 +8,7 @@ const Login = () => {
   const [mot_de_passe, setMotDePasse] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
 
 
@@ -30,6 +32,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Empêche les soumissions multiples
+
     setErrorMessage("");
     setLoading(true);
 
@@ -96,6 +100,8 @@ const Login = () => {
 
       // 5) Accès OK (même portail pour les employés/gestionnaires)
       alert(`Bienvenue ${profile.prenom} (${profile.role})`);
+      navigate("/Dashboard");
+      // navigate("/Dashboard");
 
 
     } catch (err) {
