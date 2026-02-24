@@ -62,11 +62,11 @@ const Login = () => {
         return;
       }
 
-      // 2) Obtener userId DESPUÉS del login
+      // 2) Obtenir l'identifiant utilisateur APRÈS la connexion
       const userId = authData.user.id;
       console.log("AUTH USER ID:", userId);
 
-      // 3) Buscar perfil en ta tabla utilisateurs
+      // 3) Rechercher un profil dans le tableau utilisateurs
       const { data: profile, error: profileError } = await supabase
         .from("utilisateurs")
         .select("nom, prenom, role, user_id")
@@ -86,7 +86,7 @@ const Login = () => {
         return;
       }
 
-      // 4) Solo personal autorizado
+      // 4) Personnel autorisé uniquement (gestionnaire + employé)
       const rolesAutorises = ["gestionnaire", "employe"];
 
       if (!rolesAutorises.includes(profile.role)) {
@@ -94,14 +94,10 @@ const Login = () => {
         return;
       }
 
-      // 5) Acceso OK (mismo portal para empleados/gestionnaires)
+      // 5) Accès OK (même portail pour les employés/gestionnaires)
       alert(`Bienvenue ${profile.prenom} (${profile.role})`);
 
-      // ✅ Si usas React Router:
-      // navigate("/portail-travailleurs");
 
-      // ✅ Si prefieres redirección simple:
-      // window.location.href = "/portail-travailleurs";
     } catch (err) {
       console.error("Erreur INATTENDUE:", err);
       setErrorMessage(err?.message || "Une erreur inattendue s'est produite");
@@ -122,7 +118,7 @@ const Login = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-        // ⚠️ Cambia esto por tu URL real y agrégala en Supabase > Authentication > URL Configuration
+        // ===  Remplacez ceci par votre URL réelle et ajoutez-la dans Supabase > Authentication > URL Configuration. ====== 
         redirectTo: "http://localhost:5173/update-password",
       });
 
@@ -132,7 +128,7 @@ const Login = () => {
         return;
       }
 
-      alert("Email de récupération envoyé ✅");
+      alert("Email de récupération envoyé ");
     } catch (err) {
       console.error("RESET INATTENDUE:", err);
       alert(err?.message || "Erreur lors de l'envoi de l'email");
@@ -145,9 +141,9 @@ const Login = () => {
     console.log("SESSION ERROR:", error);
 
     if (!error) {
-      alert("✅ Supabase responde correctamente");
+      alert("Supabase répond correctement");
     } else {
-      alert("❌ Error conectando con Supabase");
+      alert("Erreur lors de la connexion à Supabase");
     }
   };
 
