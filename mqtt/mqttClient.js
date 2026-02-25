@@ -141,7 +141,7 @@ console.log(" Véhicule trouvé en DB :", vehicule)
       .select("*")
       .eq("rendezvous_id", rendezvous.id)
       .single()
-
+console.log(" .........................Tâche trouvée en DB :", tache)
     if (tacheError || !tache) {
       console.log(" Tâche non trouvée pour ce rendez-vous :", rendezvous.id)
       return
@@ -149,16 +149,16 @@ console.log(" Véhicule trouvé en DB :", vehicule)
   // mettre à jour la tache en "en_cours"
   await supabase
       .from("taches")
-      .update({statut: "en_cours", heure_debut: new Date().toTimeString().split(' ')[0]})
-      .eq("id", tache.id)
-    console.log(" Tâche mise à jour en 'en_cours' :", tache.id) 
-    await supabase
+      .update({statut: "en_cours", heure_debut: new Date().toISOString()})
+      .eq("rendezvous_id", rendezvous.id)
+    console.log(" Tâche mise à jour en 'en_cours' :",rendezvous.id) 
+    /*await supabase
       .from("taches")
       .update({
         statut: "en_cours",
         heure_debut: new Date().toTimeString().split(' ')[0]
       })
-      .eq("id", tache.id)
+      .eq("id", tache.id)*/
   break;
 
     default:

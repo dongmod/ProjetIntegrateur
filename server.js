@@ -1,14 +1,22 @@
-import "./mqtt/mqttClient.js"
 import express from 'express'
-
-import cors from 'cors'
+import Stripe from "stripe";
 import http from "http";
+import "./mqtt/mqttClient.js"
+import { Server } from "socket.io";
+import supabase from './config/supabaseClient.js';
+//import from payment routes
+import paymentRoutes from "./routes/payment.routes.js"
+import cors from 'cors'
+
 
 import dotenv from 'dotenv'
-import { Server } from "socket.io";
+
 // Chargement des variables d'environnement
 dotenv.config()
 console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
+// Initialisation Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
 
 // Initialisation Express
 const app = express();
@@ -31,11 +39,54 @@ import verificationmail from "./routes/confirmationmail.route.js";
 import commentaires_tachesRoutes from './routes/commentaires_taches.routes.js'
 
 
+
 app.use(cors({
   origin: 'http://localhost:3001',
   methods: ['GET','POST','PUT','DELETE', 'PATCH'],
   credentials: true
 }));
+
+
+
+
+//  WEBHOOK  AVANT express.json()
+app.post("/api/payment/webhook",
+    
+
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+
+    const sig = req.headers["stripe-signature"]
+
+    let event
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      )
+    } catch (err) {
+      console.log(" Signature invalide:", err.message)
+      return res.status(400).send(`Webhook Error: ${err.message}`)
+    }
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object
+
+      const factureid = session.metadata.id
+
+      console.log(" Paiement confirmé pour facture:", factureid)
+
+      await supabase
+        .from("factures")
+        .update({ statut: "payee" })
+        .eq("id", factureid)
+    }
+
+    res.json({ received: true })
+  }
+)
+
 
 app.use(express.json())
 // les routes
@@ -54,7 +105,7 @@ app.use("/api/factures", factureRoutes)
 app.use("/api/capteurs", capteursRoutes)
 app.use("/api/genererfacture", genererfactureRoutes);
 app.use("/api/auth", verificationmail);
-
+app.use("/api/payment", paymentRoutes)
 
 
 // Création du serveur HTTP

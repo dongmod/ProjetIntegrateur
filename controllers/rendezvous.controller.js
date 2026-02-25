@@ -160,10 +160,9 @@ io.emit("rdv:update", {
 
 //////terminer rendez-vous
 
-export async function terminerRendezVous(rendezvous_id, commentaires) {
+export async function terminerRendezVous(rendezvous_id) {
   try {
-   // const { rendezvous_id,commentaires } = req.body;
-
+console.log(" transmission pour notif:", rendezvous_id);
     // 1) Vérifier que le rendez-vous existe 
     const { data: rdv, error } = await supabase
       .from("rendez_vous")
@@ -174,34 +173,28 @@ export async function terminerRendezVous(rendezvous_id, commentaires) {
     if (error || !rdv) {
       return { success: false, code: 404, message: "Rendez-vous n'existe pas" };
      }
-
+/*
     // 2) Vérifier que le statut permet la transition
-    if (rdv.statut == "en_cours") {
+    if (rdv.statut == "planifie") {
           return { success: false, code: 400, message: "Ce rendez-vous ne peut pas être terminé" };
     }else 
       if (rdv.statut == "termine") {      return { success: false, code: 400, message: "Ce rendez-vous est déjà terminé" };
      }
+
+*/
     // Récupérer les infos du client pour la notification
     const { data: userrdv } = await supabase
       .from('vehicules')
       .select('id, client_id')
       .eq('id', rdv.vehicule_id)
       .single()
-// Récupérer les infos du client pour la notification
+   // Récupérer les infos du client pour la notification
     const { data: userrdv2 } = await supabase
       .from('utilisateurs')
       .select('email')
-      .eq('id', userrdv.client_id)
+      .eq('user_id', userrdv.client_id)
       .single()
-    // 3) Mettre à jour le statut
-    const { error: updateError } = await supabase
-      .from("rendez_vous")
-      .update({ statut: "termine", commentaires: commentaires, date_fin: new Date().toISOString() })
-
-      .eq("id", rendezvous_id);
-
-    if (updateError) {  return { success: false, code: 500, message: "Erreur lors de la mise à jour du statut" };
-     }
+    
 
     // 4) Notification (email, MQTT, etc.)
     await notificatiordvtermine(userrdv2.email)
@@ -209,7 +202,7 @@ export async function terminerRendezVous(rendezvous_id, commentaires) {
     await supabase
       .from("notifications")
       .insert({
-        client_id: userrdv.client_id,
+        utilisateur_id: userrdv.client_id,
         message: "Votre rendez-vous est terminé. Vous pouvez venir récupérer votre véhicule.",
         type: "mail",
         created_at: new Date().toISOString()
