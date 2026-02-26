@@ -1,24 +1,26 @@
 import supabase from '../config/supabaseClient.js'
 import { io } from "../server.js";
-export const createGarage = async (req, res) => {
-  const { nom, adresse, telephone, email } = req.body
+export const createcapteurs = async (req, res) => {
+  const { identifiant_materiel, poste_id, type } = req.body
 
   // Validation simple
-  if (!nom || !adresse || !telephone || !email) {
+  if (!identifiant_materiel || !poste_id || !type) {
     return res.status(400).json({
-      message: "Nom, adresse, téléphone et email sont obligatoires"
+      message: "Identifiant materiel, poste_id et type sont obligatoires"
     })
   }
 
   try {
+
+
     const { data, error } = await supabase
-      .from('garages')
+      .from('capteurs')
       .insert([
         {
-          nom,
-          adresse,
-          telephone,
-          email
+        
+          identifiant_materiel,
+          poste_id,
+          type
         }
       ])
       .select()
@@ -31,8 +33,8 @@ export const createGarage = async (req, res) => {
     }
 
     return res.status(201).json({
-      message: "Garage créé avec succès",
-      garage: data[0]
+      message: "Capteur créé avec succès",
+      capteur: data[0]
     })
 
   } catch (err) {
@@ -42,38 +44,44 @@ export const createGarage = async (req, res) => {
     })
   }
 }
-export const getGarages = async (req, res) => {
+
+export const getcapteurs = async (req, res) => {
   const { data, error } = await supabase
-    .from('garages')
+    .from('capteurs')
     .select('*')
 
   if (error) return res.status(400).json(error)
 
   res.json(data)
 }
-export const updateGarage = async (req, res) => {
-  const garageId = req.params.id
-  const { nom, adresse, telephone, email } = req.body
+
+
+export const updatecapteurs = async (req, res) => {
+  const capteurId = req.params.id
+  const { nom, type_service, statut } = req.body
 
   const { data, error } = await supabase
-    .from('garages')
-    .update({ nom, adresse, telephone, email })
-    .eq('id', garageId)
+    .from('capteurs')
+    .update({ nom, type_service, statut })
+    .eq('id', capteurId)
     .select()
 
   if (error) return res.status(400).json(error)
 
   res.json(data[0])
 }
-export const deleteGarage = async (req, res) => {
-  const garageId = req.params.id
+
+
+
+export const deletecapteurs = async (req, res) => {
+  const capteurId = req.params.id
 
   const { error } = await supabase
-    .from('garages')
+    .from('capteurs')
     .delete()
-    .eq('id', garageId)
+    .eq('id', capteurId)
 
   if (error) return res.status(400).json(error)
 
-  res.json({ message: "Garage supprimé" })
+  res.json({ message: "Capteur supprimé" })
 }

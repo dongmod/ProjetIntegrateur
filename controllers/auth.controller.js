@@ -1,6 +1,8 @@
 import supabase from '../config/supabaseClient.js'
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken'
+import { sendVerificationEmail } from '../utils/email.js';
+import { io } from "../server.js";
 import { schema } from "../Zod/zodcreationuser.js";
 import { schema1 } from "../Zod/validationlogin.js";
 import { verifyToken } from '../middleware/authMiddleware.js';
@@ -25,10 +27,15 @@ if (!result.success) {
 }
 
 
-  console.log("BODY:", req.body);
-  console.log("mot_de_passe:", req.body.mot_de_passe);
   const hashedmot_de_passe = await bcrypt.hash(mot_de_passe, 10);
+//faire un token de verification du client
+const verificationToken = jwt.sign(
+  { email },
+  process.env.JWT_SECRET,
+  { expiresIn: "10m" }
+)
 
+//insertion
   const { data, error } = await supabase
     .from('utilisateurs')
     .insert([
@@ -37,8 +44,10 @@ if (!result.success) {
     .select()
 
   if (error) return res.status(400).json(error)
+//envoyer le mail de verification
+  await sendVerificationEmail(email, verificationToken)
 
-  res.json(data)
+  res.json({ message: "Utilisateur créé, email envoyé pour vérification", data }) 
 }
 
 export const login = async (req, res) => {
@@ -71,6 +80,11 @@ console.log("LOGIN BODY:", req.body);
   if (error || !data) {
     return res.status(401).json({ message: 'Utilisateur non trouvé' })
   }
+if (!data.verifie) {
+  return res.status(403).json({
+    message: "Veuillez confirmer votre email"
+  })
+}
 
   const valid = await bcrypt.compare(mot_de_passe, data.mot_de_passe)
 
@@ -79,11 +93,12 @@ console.log("LOGIN BODY:", req.body);
   }
 
   const token = jwt.sign(
-    { id: data.id, role: data.role },
+    { id: data.user_id, role: data.role },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
+    
   )
-
+console.log("TOKEN ENVOYÉ AU CLIENT =", token)
   res.json({ token })
 }
 
