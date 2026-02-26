@@ -67,14 +67,14 @@ const Login = () => {
       }
 
       // 2) Obtenir l'identifiant utilisateur APRÈS la connexion
-      const userId = authData.user.id;
-      console.log("AUTH USER ID:", userId);
+      const user_id = authData.user.id;
+      console.log("AUTH  ID:", user_id);
 
       // 3) Rechercher un profil dans le tableau utilisateurs
       const { data: profile, error: profileError } = await supabase
         .from("utilisateurs")
         .select("nom, prenom, role, user_id")
-        .eq("user_id", userId)
+        .eq("user_id", user_id)
         .maybeSingle();
 
       console.log("PROFILE DATA:", profile);
