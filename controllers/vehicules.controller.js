@@ -1,10 +1,9 @@
 import supabase from '../config/supabaseClient.js'
 import { io } from "../server.js";
 export const createVehicule = async (req, res) => {
-  const clientId = req.user.id
-  
-console.log("ID utilisateur :", req.user)
-  const { marque, modele, annee, plaque } = req.body
+  const clientId = req.user.user_id
+  console.log("ID utilisateur :", req.user)
+  const { marque, modele, annee, plaque,kilometrage,vin,immatriculation,couleur } = req.body
 
   // Validation simple
   if (!marque || !modele || !plaque) {
@@ -23,7 +22,11 @@ console.log("ID utilisateur :", req.user)
           marque,
           modele,
           annee,
-          plaque
+          plaque,
+          kilometrage,
+          vin,
+          immatriculation,
+          couleur
         }
       ])
       .select()
@@ -80,14 +83,14 @@ export const getVehiculeall = async (req, res) => {
 
 
 export const updateVehicule = async (req, res) => {
-  const clientId = req.user.id
+  const clientId = req.user.user_id
   const vehiculeId = req.params.id
 
-  const { marque, modele, annee, plaque } = req.body
+  const { marque, modele, annee, plaque, kilometrage,vin,immatriculation,couleur } = req.body
 
   const { data, error } = await supabase
     .from('vehicules')
-    .update({ marque, modele, annee, plaque })
+    .update({ client_id: clientId,marque, modele, annee, plaque, kilometrage,vin,immatriculation,couleur }) 
     .eq('id', vehiculeId)
     .eq('client_id', clientId)
     .select()
@@ -109,4 +112,38 @@ export const deleteVehicule = async (req, res) => {
   if (error) return res.status(400).json(error)
 
   res.json({ message: "Véhicule supprimé" })
+}
+
+
+
+
+export const getHistoriqueVehicule = async (req, res) => {
+  const vehiculeId = req.params.id
+
+  try {
+    const { data, error } = await supabase
+      .from("rendez_vous")
+      .select(`
+        id,
+        date_rendezvous,
+        type_service,
+        commentaires,
+        taches (
+          titre,
+          description,
+          heure_debut,
+          heure_fin
+        )
+      `)
+      .eq("vehicule_id", vehiculeId)
+      .eq("statut", "termine")
+      .order("date_rendezvous", { ascending: false })
+
+    if (error) return res.status(400).json(error)
+
+    res.json(data)
+
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur" })
+  }
 }

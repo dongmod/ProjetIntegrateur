@@ -24,7 +24,7 @@ export const sendFactureByEmail = async (req, res) => {
     const { data: client } = await supabase
       .from("utilisateurs")
       .select("email")
-      .eq("id", facture.client_id)
+      .eq("user_id", facture.client_id)
       .single()
 
     //  Générer PDF en mémoire

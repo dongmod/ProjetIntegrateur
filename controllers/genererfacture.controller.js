@@ -1,6 +1,8 @@
 import PDFDocument from "pdfkit"
 import supabase from "../config/supabaseClient.js"
 import { io } from "../server.js";
+import { fa } from "zod/v4/locales";
+import path from "path"
 export const downloadFacture = async (req, res) => {
 
   try {
@@ -25,7 +27,7 @@ export const downloadFacture = async (req, res) => {
       .eq("facture_id", id)
 
     // Générer PDF
-    const doc = new PDFDocument()
+    const doc = new PDFDocument({ size: "A4", margin: 50 })
 
     res.setHeader("Content-Type", "application/pdf")
     res.setHeader(
@@ -35,13 +37,39 @@ export const downloadFacture = async (req, res) => {
 
     doc.pipe(res)
 
-    doc.fontSize(20).text("SMART GARAGE", { align: "center" })
-    doc.moveDown()
+    //doc.fontSize(20).text("SMART GARAGE", { align: "center" })
+    //doc.moveDown()
 
-    doc.text(`Facture ID: ${facture.id}`)
-    doc.text(`Date: ${new Date(facture.date_emission).toLocaleDateString()}`)
-    doc.moveDown()
+const logoPath = path.join("assets", "logo.png")
+  doc.image(logoPath, 50, 45, { width: 120 })
 
+
+
+
+  //  Titre facture
+  doc
+    .fontSize(20)
+    .text("FACTURE", 400, 50)
+
+  //  Infos Garage
+  doc
+    .fontSize(12)
+    .text("SmartGarage Inc.", 50, 150)
+    .text("123 Rue Industrielle")
+    .text("Montréal, QC")
+    .text("Téléphone: 514-438-514")
+ doc
+    .moveDown()
+    .text(`Client: ${facture.client_id}`, { align: "right" })
+    .text(`Date: ${new Date().toLocaleDateString()}`, { align: "right" })
+
+  //  Ligne séparation
+  //doc.moveTo(50, 250).lineTo(550, 250).stroke()
+
+doc.text(`Facture ID: ${facture.id}`, { align: "right" })
+    doc.text(`Date: ${new Date(facture.date_emission).toLocaleDateString()}`, { align: "right" })
+    doc.moveDown()
+    .moveDown()    .moveDown()
     let total = 0
 
     items.forEach(item => {
@@ -55,6 +83,7 @@ export const downloadFacture = async (req, res) => {
     })
 
     doc.moveDown()
+    
     doc.text(`TOTAL: ${total}$`, { align: "right" })
 
     doc.end()

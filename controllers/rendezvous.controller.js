@@ -118,10 +118,30 @@ export const getMesRendezVous = async (req, res) => {
 export const deleteRendezVous = async (req, res) => {
   const rdvId = req.params.id
 
+
+
+   //recuperer la date du rendez-vous pour la notification
+   const { data: rdv } = await supabase
+   .from('rendez_vous')
+   .select('date_rendezvous')
+   .eq('id', rdvId)
+   .single()
+    if (rdvError || !rdv) {
+      return res.status(404).json({ message: "Rendez-vous introuvable" })
+    }
+    const now = new Date()
+    const rdvDate = new Date(rdv.date_rendezvous)
+
+    if (rdvDate - now < 24 * 60 * 60 * 1000) {
+      return res.status(400).json({ message: "Impossible d'annuler un rendez-vous à moins de 24h de l'heure prévue" })
+    }
+
+
   const { error } = await supabase
     .from('rendez_vous')
     .delete()
     .eq('id', rdvId)
+    
 // mise a jou du socket dasboard rendez-vous
 io.emit("rdv:update", {
   type: "deleted",
@@ -137,6 +157,23 @@ io.emit("rdv:update", {
 export const updateRendezVous = async (req, res) => {
   const rdvId = req.params.id
   const { date_rendezvous, type_service, statut } = req.body
+
+
+const { data: rdvupdate } = await supabase 
+   .from('rendez_vous')
+   .select('date_rendezvous')
+   .eq('id', rdvId)
+   .single()
+    if ( !rdvupdate) {
+      return res.status(404).json({ message: "Rendez-vous introuvable" })
+    }
+    const now = new Date()
+    const rdvDateupdate = new Date(rdvupdate.date_rendezvous)
+
+    if (rdvDateupdate - now < 24 * 60 * 60 * 1000) {
+      return res.status(400).json({ message: "Impossible de modifier un rendez-vous à moins de 24h de l'heure prévue" })
+    }
+
 
   const { data, error } = await supabase
     .from('rendez_vous')
@@ -216,3 +253,6 @@ console.log(" transmission pour notif:", rendezvous_id);
 
   }
 };
+
+
+

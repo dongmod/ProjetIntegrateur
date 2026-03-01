@@ -1,11 +1,14 @@
 import express from 'express'
+// importation du cron pour la planification des tâches de relance de maintenance
+import "./utils/planificateur_de_tache.js"
 import Stripe from "stripe";
 import http from "http";
 import "./mqtt/mqttClient.js"
 import { Server } from "socket.io";
 import supabase from './config/supabaseClient.js';
 //import from payment routes
-import paymentRoutes from "./routes/payment.routes.js"
+import paymentRoutes from "./routes/payment.routes.js";
+import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
 
 
@@ -41,7 +44,9 @@ import commentaires_tachesRoutes from './routes/commentaires_taches.routes.js'
 
 
 app.use(cors({
-  origin: 'http://localhost:3001',
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+
+
   methods: ['GET','POST','PUT','DELETE', 'PATCH'],
   credentials: true
 }));
@@ -74,13 +79,16 @@ app.post("/api/payment/webhook",
       const session = event.data.object
 
       const factureid = session.metadata.id
-
-      console.log(" Paiement confirmé pour facture:", factureid)
-
+        const client_a_notifier = session.metadata.user_email
+     
       await supabase
         .from("factures")
         .update({ statut: "payee" })
         .eq("id", factureid)
+        console.log(" Paiement confirmé pour facture:", factureid)
+    
+        confirmationpaiement(client_a_notifier)
+
     }
 
     res.json({ received: true })
@@ -106,7 +114,6 @@ app.use("/api/capteurs", capteursRoutes)
 app.use("/api/genererfacture", genererfactureRoutes);
 app.use("/api/auth", verificationmail);
 app.use("/api/payment", paymentRoutes)
-
 
 // Création du serveur HTTP
 const server = http.createServer(app);

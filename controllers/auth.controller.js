@@ -93,7 +93,7 @@ if (!data.verifie) {
   }
 
   const token = jwt.sign(
-    { id: data.user_id, role: data.role },
+    { user_id: data.user_id, role: data.role },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
     
@@ -101,7 +101,33 @@ if (!data.verifie) {
 console.log("TOKEN ENVOYÉ AU CLIENT =", token)
   res.json({ token })
 }
+//get user connecté
+export const userconnected =  async (req, res) => {
+  try {
+    const userId = req.user.user_id; // ← vient du token
+     console.log("USERCONNECTED → userId =", userId);
 
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid token payload" });
+    }
+ 
+    const { data, error } = await supabase
+      .from("utilisateurs")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+    console.log("SUPABASE DATA =", data);
+    console.log("SUPABASE ERROR =", error);
+
+    if (error) {
+      return res.status(400).json({ message: error.message });
+    }
+ 
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+};
 
 
 //delete
@@ -198,3 +224,31 @@ export const resetMot_de_passe = async (req, res) => {
 
   res.json(data[0])
 }
+
+
+export const me = async (req, res) => {
+  try {
+ 
+    const userId = req.user?.user_id;
+ 
+    if (!userId) {
+      return res.status(401).json({ message: "Invalid token payload (missing id)" });
+    }
+ 
+ 
+ 
+    const { data, error } = await supabase
+      .from("utilisateurs")
+      .select("user_id, nom, prenom, email, role")
+      .eq("user_id", userId)          // 👈 CAMBIAR si tu token usa user_id
+      .single();
+ 
+    if (error || !data) {
+      return res.status(404).json({ message: "Profil introuvable" });
+    }
+ 
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+};
