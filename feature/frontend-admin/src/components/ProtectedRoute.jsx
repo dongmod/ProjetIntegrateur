@@ -1,73 +1,35 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { apiFetch } from "../lib/api"; // ou ton chemin
 
-const ProtectedRoute = ({ children }) => {
-  const [checking, setChecking] = useState(true);
+export default function ProtectedRoute({ children }) {
+  const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false; // ✅ DECLARÉ ICI
 
-    const checkAccess = async () => {
+    const run = async () => {
       try {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !sessionData?.session?.user) {
-          if (mounted) {
-            setAllowed(false);
-            setChecking(false);
-          }
-          return;
-        }
-
-        const userId = sessionData.session.user.id;
-
-        const { data: profile, error: profileError } = await supabase
-          .from("utilisateurs")
-          .select("role, user_id")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (profileError || !profile) {
-          if (mounted) {
-            setAllowed(false);
-            setChecking(false);
-          }
-          return;
-        }
-
-        const rolesAutorises = ["gestionnaire", "employe"];
-        const isAllowed = rolesAutorises.includes(profile.role);
-
-        if (mounted) {
-          setAllowed(isAllowed);
-          setChecking(false);
-        }
-      } catch (err) {
-        if (mounted) {
-          setAllowed(false);
-          setChecking(false);
-        }
+        // Exemple : ton endpoint qui vérifie le token
+        await apiFetch("/api/auth/me"); // si apiFetch ajoute Authorization
+        if (!cancelled) setAllowed(true);
+      } catch (e) {
+        if (!cancelled) setAllowed(false);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    checkAccess();
+    run();
 
     return () => {
-      mounted = false;
+      cancelled = true; // ✅ cleanup safe
     };
   }, []);
 
-  if (checking) {
-    return <p style={{ padding: "1rem" }}>Chargement...</p>;
-  }
-
-  if (!allowed) {
-    return <Navigate to="/" replace />;
-  }
+  if (loading) return <p>Chargement...</p>;
+  if (!allowed) return <Navigate to="/" replace />;
 
   return children;
-};
-
-export default ProtectedRoute;
+}

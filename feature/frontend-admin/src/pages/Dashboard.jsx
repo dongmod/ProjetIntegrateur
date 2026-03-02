@@ -1,59 +1,5 @@
-// import React, { useEffect, useState } from "react";
-// import Header from "../components/Header";
-// import { supabase } from "../lib/supabase";
-// import { useNavigate } from "react-router-dom";
-
-// const Dashboard = () => {
-//   const navigate = useNavigate();
-//   const [loadingPage, setLoadingPage] = useState(true);
-
-//   useEffect(() => {
-//     const checkSession = async () => {
-//       const { data, error } = await supabase.auth.getSession();
-
-//       if (error || !data?.session) {
-//         navigate("/", { replace: true });
-//         return;
-//       }
-
-//       setLoadingPage(false);
-//     };
-
-//     checkSession();
-//   }, [navigate]);
-
-//   const handleLogout = async () => {
-//     const { error } = await supabase.auth.signOut();
-
-//     if (error) {
-//       alert("Erreur lors de la déconnexion");
-//       return;
-//     }
-
-//     navigate("/", { replace: true });
-//   };
-
-//   if (loadingPage) {
-//     return <p style={{ padding: "1rem" }}>Chargement du dashboard...</p>;
-//   }
-
-//   return (
-//     <div>
-//       <Header title="Dashboard" subtitle="Bienvenue" onLogout={handleLogout} />
-//       <main style={{ padding: "1rem" }}>
-//         <p>Contenido del dashboard</p>
-//       </main>
-//     </div>
-//   );
-// };
-
-// export default Dashboard;
-
-
-
 import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
-import { supabase } from "../lib/supabase";
 import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
@@ -69,33 +15,38 @@ const Dashboard = () => {
   }
 };
 
+
   useEffect(() => {
     const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
+      //const { data, error } = await supabase.auth.getSession();
+const token = localStorage.getItem("token");
+if (!token) return navigate("/", { replace: true });
 
-      if (error || !data?.session) {
-        navigate("/", { replace: true });
-        return;
-      }
+const res = await fetch("http://localhost:3001/api/auth/me", {
+  headers: {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${token}`
+}
 
-      setLoadingPage(false);
+
+});
+
+if (!res.ok) return navigate("/", { replace: true });
+
+setLoadingPage(false);
+
     };
-
-    checkSession();
+checkSession();
   }, [navigate]);
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  navigate("/", { replace: true });
+};
 
-    if (error) {
-      alert("Erreur lors de la déconnexion");
-      return;
-    }
 
-    navigate("/", { replace: true });
-  };
 
-  if (loadingPage) {
+ if (loadingPage) {
     return <p className="loading-text">Chargement du dashboard...</p>;
   }
 
@@ -155,26 +106,26 @@ const Dashboard = () => {
           <section className="stats-grid">
             <div className="card">
               <h3 className="card-title">📅 Rendez-vous aujourd’hui</h3>
-              <p className="card-value">12</p>
-              <p className="card-text">3 en attente de confirmation</p>
+              <p className="card-value">0</p>
+              <p className="card-text"> en attente de confirmation</p>
             </div>
 
             <div className="card">
               <h3 className="card-title">✅ Tâches en cours</h3>
-              <p className="card-value">8</p>
+              <p className="card-value">0</p>
               <p className="card-text">2 tâches prioritaires</p>
             </div>
 
             <div className="card">
               <h3 className="card-title">👥 Employés connectés</h3>
-              <p className="card-value">5</p>
-              <p className="card-text">Sur 7 employés</p>
+              <p className="card-value">0</p>
+              <p className="card-text">Sur 0 employés</p>
             </div>
 
             <div className="card">
               <h3 className="card-title">💰 Revenus (semaine)</h3>
-              <p className="card-value">2 450 $</p>
-              <p className="card-text">+12% vs semaine passée</p>
+              <p className="card-value">0 $</p>
+              <p className="card-text">+0% vs semaine passée</p>
             </div>
           </section>
 
