@@ -50,6 +50,12 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold mb-2">Mon profil</h2>
             <p className="text-gray-400">Modifier votre profil</p>
           </div>
+
+          <div className="bg-gray-800 p-6 rounded-lg cursor-pointer hover:bg-gray-700"
+            onClick={() => router.push('/factures')}>
+            <h2 className="text-xl font-semibold mb-2">🧾 Mes factures</h2>
+            <p className="text-gray-400">Voir et payer vos factures</p>
+            </div>
         </div>
       </div>
     </div>
