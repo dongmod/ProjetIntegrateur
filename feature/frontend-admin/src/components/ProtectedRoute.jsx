@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { apiFetch } from "../lib/api"; // ou ton chemin
-import { all } from "proxy-addr";
+// import { all } from "proxy-addr";
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const [loading, setLoading] = useState(true);
