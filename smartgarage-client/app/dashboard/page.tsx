@@ -53,8 +53,14 @@ export default function Dashboard() {
 
           <div className="bg-gray-800 p-6 rounded-lg cursor-pointer hover:bg-gray-700"
             onClick={() => router.push('/factures')}>
-            <h2 className="text-xl font-semibold mb-2">🧾 Mes factures</h2>
+            <h2 className="text-xl font-semibold mb-2"> Mes factures</h2>
             <p className="text-gray-400">Voir et payer vos factures</p>
+            </div>
+
+            <div className="bg-gray-800 p-6 rounded-lg cursor-pointer hover:bg-gray-700"
+            onClick={() => router.push('/suivi')}>
+            <h2 className="text-xl font-semibold mb-2">🔧 Suivi en temps réel</h2>
+            <p className="text-gray-400">Voir l'avancement de votre service</p>
             </div>
         </div>
       </div>
