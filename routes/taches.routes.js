@@ -1,5 +1,5 @@
 import express from 'express'
-import { createTaches,updateTache,deleteTache, getMesTaches } from '../controllers/taches.controllers.js'
+import { createTaches,updateTache,deleteTache, terminertaches,getMesTaches } from '../controllers/taches.controllers.js'
 import { verifyToken } from '../middleware/authMiddleware.js'
 
 const router = express.Router()
@@ -9,4 +9,6 @@ router.post('/', createTaches)
 router.get('/', verifyToken, getMesTaches)
 router.put('/:id', verifyToken, updateTache)
 router.delete('/:id', verifyToken, deleteTache)
+
+router.post('/terminer', verifyToken, terminertaches)
 export default router

@@ -1,5 +1,5 @@
 import supabase from '../config/supabaseClient.js'
-
+import { io } from "../server.js";
 export const createPosteTravail = async (req, res) => {
   const clientId = req.user.id
   const { nom, type_service, statut } = req.body

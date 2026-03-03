@@ -1,5 +1,5 @@
 import supabase from '../config/supabaseClient.js'
-
+import { io } from "../server.js";
 export const createservices = async (req, res) => {
   const { nom, duree } = req.body
 
@@ -41,4 +41,14 @@ export const createservices = async (req, res) => {
       error: err.message
     })
   }
+}
+export const getservices = async (req, res) => {
+console.log("ID utilisateur :", req.user)
+  const { data, error } = await supabase
+    .from('services')
+    .select('*')
+
+  if (error) return res.status(400).json(error)
+
+  res.json(data)
 }
