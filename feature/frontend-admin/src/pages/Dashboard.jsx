@@ -7,6 +7,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [loadingPage, setLoadingPage] = useState(true);
   const [menuOpen, setMenuOpen] = useState(true);
+  const [userRole, setUserRole] = useState(null);
+  
 
   const goTo = (path) => {
   navigate(path);
@@ -19,13 +21,13 @@ const Dashboard = () => {
   useEffect(() => {
     const checkSession = async () => {
       //const { data, error } = await supabase.auth.getSession();
-const token = localStorage.getItem("token");
-if (!token) return navigate("/", { replace: true });
+    const token = localStorage.getItem("token");
+    if (!token) return navigate("/", { replace: true });
 
-const res = await fetch("http://localhost:3001/api/auth/me", {
-  headers: {
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${token}`
+    const res = await fetch("http://localhost:3001/api/auth/me", {
+    headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
 }
 
 
@@ -33,6 +35,8 @@ const res = await fetch("http://localhost:3001/api/auth/me", {
 
 if (!res.ok) return navigate("/", { replace: true });
 
+const data=await res.json();
+setUserRole(data.role);    //<==== Garde le rôle de l'utilisateur pour afficher/masquer des éléments du dashboard selon les permissions
 setLoadingPage(false);
 
     };
@@ -58,6 +62,12 @@ const handleLogout = () => {
       />
 
       <div className="dashboard-layout">
+        {menuOpen && window.innerWidth <=768 && (
+          <div 
+          className="sidebar-overlay" 
+          onClick={() => setMenuOpen(false)}></div>
+        )}
+        
         <aside className={`sidebar ${menuOpen ? "open" : "closed"}`}>
           {menuOpen && (
             <>
@@ -97,7 +107,7 @@ const handleLogout = () => {
 
         <main className="dashboard-main">
           <div className="page-header">
-            <h1 className="page-title">Dashboard Admin</h1>
+            <h1 className="page-title">Bonjour Admin</h1>
             <p className="page-subtitle">
               Bienvenue dans votre espace d’administration SmartGarage
             </p>

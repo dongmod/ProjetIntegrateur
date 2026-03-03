@@ -116,7 +116,7 @@ export const userconnected =  async (req, res) => {
     const { data, error } = await supabase
       .from("utilisateurs")
       .select("*")
-      .eq("user_id", userId)
+      .eq('user_id', userId)
       .single();
     console.log("SUPABASE DATA =", data);
     console.log("SUPABASE ERROR =", error);
@@ -145,7 +145,7 @@ export const updateUser = async (req, res) => {
   const { data, error } = await supabase
     .from('utilisateurs')
     .update({ nom, prenom, email, mot_de_passe, role })
-    .eq('id', userId)
+    .eq('user_id', userId)
     .select()
 
   if (error) return res.status(400).json(error)

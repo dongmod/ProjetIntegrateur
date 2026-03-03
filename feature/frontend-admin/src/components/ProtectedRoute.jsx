@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { apiFetch } from "../lib/api"; // ou ton chemin
+import { all } from "proxy-addr";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, allowedRoles = [] }) {
   const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
 
@@ -11,9 +12,15 @@ export default function ProtectedRoute({ children }) {
 
     const run = async () => {
       try {
+        const user = await apiFetch("/api/auth/me"); // si apiFetch ajoute Authorization
+        console.log ("USER PROTECTED ROUTE =", user);
+        console.log ("ALLOWED ROLES PROTECTED ROUTE =", allowedRoles);
+        console.log("HAS ROLE:", allowedRoles.includes(user.role));
+
         // Exemple : ton endpoint qui vérifie le token
-        await apiFetch("/api/auth/me"); // si apiFetch ajoute Authorization
-        if (!cancelled) setAllowed(true);
+        // await apiFetch("/api/auth/me"); // si apiFetch ajoute Authorization
+        const hasRole = allowedRoles.length === 0 || allowedRoles.includes(user.role);
+        if (!cancelled) setAllowed(hasRole);
       } catch (e) {
         if (!cancelled) setAllowed(false);
       } finally {
@@ -24,9 +31,9 @@ export default function ProtectedRoute({ children }) {
     run();
 
     return () => {
-      cancelled = true; // ✅ cleanup safe
+      cancelled = true; //  cleanup safe
     };
-  }, []);
+  }, [allowedRoles]); //  RE-LANCE SI LES ROLES AUTORISÉS CHANGENT
 
   if (loading) return <p>Chargement...</p>;
   if (!allowed) return <Navigate to="/" replace />;

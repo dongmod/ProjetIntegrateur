@@ -1,5 +1,7 @@
 .app-header {
   height: 70px;
+  width: 100%;
+  box-sizing:border-box; 
   background: linear-gradient(90deg, #0f172a, #1e3a8a);
   color: #ffffff;
   display: flex;

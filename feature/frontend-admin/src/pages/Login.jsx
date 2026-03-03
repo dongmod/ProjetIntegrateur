@@ -80,7 +80,7 @@ console.log("ROLE:", role);
 if (role === "gestionnaire") return navigate("/dashboard");
 
 
-if (role === "employe") return navigate("/dashboard");
+if (role === "employe") return navigate("/dashboard-employe");
 if (role === "client") return navigate("/client");
 
 setErrorMessage("Rôle inconnu ou manquant.");
