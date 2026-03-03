@@ -1,0 +1,107 @@
+.app-header {
+  height: 70px;
+  background: linear-gradient(90deg, #0f172a, #1e3a8a);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.app-header-left,
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-btn {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.logout-btn {
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}
+
+.header-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 4px;
+}
+
+.header-logo-fallback {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: none; /* se muestra solo si falla el logo */
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 10px;
+  }
+
+  .menu-btn,
+  .logout-btn {
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+
+  .header-logo,
+  .header-logo-fallback {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header-left {
+    gap: 6px;
+  }
+
+  .menu-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .logout-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
