@@ -62,6 +62,12 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold mb-2">🔧 Suivi en temps réel</h2>
             <p className="text-gray-400">Voir l'avancement de votre service</p>
             </div>
+
+            <div className="bg-gray-800 p-6 rounded-lg cursor-pointer hover:bg-gray-700"
+            onClick={() => router.push('/notifications')}>
+            <h2 className="text-xl font-semibold mb-2">🔔 Notifications</h2>
+            <p className="text-gray-400">Voir vos notifications</p>
+            </div>
         </div>
       </div>
     </div>
