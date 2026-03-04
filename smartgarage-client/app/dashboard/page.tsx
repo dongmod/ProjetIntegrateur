@@ -24,8 +24,8 @@ export default function Dashboard() {
     return (
         <div className="min-h-screen bg-gray-900 text-white p-8">
             <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold">Bienvenue!</h1>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                    <h1 className="text-2xl sm:text-3xl font-bold">Bienvenue!</h1>
                     <button
                     onClick={handleLogout}
                     className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
@@ -34,7 +34,7 @@ export default function Dashboard() {
                     </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-800 p-6 rounded-lg cursor-pointer hover:bg-gray-700"
             onClick={() => router.push('/vehicules')}>
             <h2 className="text-xl font-semibold mb-2">Mes véhicules</h2>
