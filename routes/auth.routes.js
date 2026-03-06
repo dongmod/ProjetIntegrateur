@@ -1,9 +1,10 @@
 import express from 'express'
-import { register, getUserbyId,resetMot_de_passe,login,deleteUser,updateUser,getUser,me,userconnected } from '../controllers/auth.controller.js'
+import { register,updateProfil, getUserbyId,resetMot_de_passe,login,deleteUser,updateUser,getUser,me,userconnected } from '../controllers/auth.controller.js'
 import { verifyToken } from '../middleware/authMiddleware.js';
 const router = express.Router()
 
 router.post('/register', register)
+router.patch('/profil/:id', updateProfil)
 router.post('/login', login)
 router.delete('/deleteUser/:id', deleteUser)
 router.put('/updateUser/:id', updateUser)

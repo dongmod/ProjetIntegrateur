@@ -3,7 +3,7 @@ import { io } from "../server.js";
 import { confirmationEmail } from '../utils/confirmationrdv.js';
 import { notificatiordvtermine } from '../utils/notificatiordvtermine.js';
 export const createRendezVous = async (req, res) => {
-  const userId = req.user.id
+  const userId = req.user.user_id
   const { vehicule_id, garage_id, date_rendezvous, type_service } = req.body
 console.log("REQ.USER =", req.user);
   try {
@@ -15,10 +15,10 @@ console.log("REQ.USER =", req.user);
       .eq('client_id', userId)
       .single()
 console.log("vehicule =", vehicule_id);
-console.log("garage =", garage_id);
-console.log("da =", date_rendezvous);
-console.log("userId =", userId);
-console.log("service =", type_service);
+
+
+console.log("USER ID =", userId);
+console.log("Résultat Supabase vehicule =", vehicule, vehiculeError);
     if (vehiculeError || !vehicule) {
       return res.status(403).json({ message: "Véhicule invalide pour ce client" })
     }
@@ -194,7 +194,6 @@ io.emit("rdv:update", {
 
 
 
-
 //////terminer rendez-vous
 
 export async function terminerRendezVous(rendezvous_id) {
@@ -231,7 +230,11 @@ console.log(" transmission pour notif:", rendezvous_id);
       .select('email')
       .eq('user_id', userrdv.client_id)
       .single()
-    
+    //inserer date derniere maintenance dans la table des vehicules
+    const { error: updateError } = await supabase
+      .from("vehicules")
+      .update({ date_derniere_maint: new Date().toISOString().split('T')[0] })
+      .eq("id", rdv.vehicule_id);
 
     // 4) Notification (email, MQTT, etc.)
     await notificatiordvtermine(userrdv2.email)

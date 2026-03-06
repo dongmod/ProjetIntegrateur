@@ -15,14 +15,14 @@ export const verifierMaintenance = async () => {
       .from("regle_maint")
       .select("*")
       .eq("vehicule_id", vehicule.id);
-console.log(`Vérification pour le véhicule ${vehicule.id} avec ${regles.length} règles de maintenance. avec ${vehicule.client_id} `);
+//console.log(`Vérification pour le véhicule ${vehicule.id} avec ${regles.length} règles de maintenance. avec ${vehicule.client_id} `);
     for (const regle of regles) {
       const kmDepuis = vehicule.kilometrage - vehicule.km_derniere_maint;
       //const moisDepuis = differenceEnMois(vehicule.derniere_maintenance_date, new Date());
 
      
    const moisDepuis = differenceEnMois(new Date(vehicule.date_derniere_maint), new Date());
-console.log(`Véhicule ${vehicule.id} - KM depuis dernière maintenance: ${kmDepuis}, Mois depuis dernière maintenance: ${moisDepuis}`);
+//console.log(`Véhicule ${vehicule.id} - KM depuis dernière maintenance: ${kmDepuis}, Mois depuis dernière maintenance: ${moisDepuis}`);
       if (kmDepuis >= regle.interval_km || moisDepuis >= regle.interval_mois) {
         console.log(`Notification créée pour le véhicule ${vehicule.id} : ${regle.type}`);
         await creerNotification(vehicule.client_id, regle.type);

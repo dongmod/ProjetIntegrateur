@@ -49,8 +49,9 @@ const logoPath = path.join("assets", "logo.png")
   //  Titre facture
   doc
     .fontSize(20)
-    .text("FACTURE", 400, 50)
+    //.text("FACTURE", 400, 50)
 
+    doc.text(`Facture No: ${facture.numero}`, { align: "right" })
   //  Infos Garage
   doc
     .fontSize(12)

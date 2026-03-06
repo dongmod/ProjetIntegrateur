@@ -32,11 +32,36 @@ import supabase from "../config/supabaseClient.js"
 import { da, de } from "zod/v4/locales"
 
 const client = mqtt.connect("mqtt://localhost:1883")
-
+const clientvin = mqtt.connect("mqtt://localhost:1883")
 client.on("connect", () => {
-  console.log(" Backend MQTT connecté")
+  console.log("--------------------- Backend MQTT connecté,  --------continuer pour remplacer la plaque----------------")
   client.subscribe("garage/capteur")
 })
+
+// mqtt pour le telephone
+clientvin.subscribe("garage/capteurvin")
+
+clientvin.on("message", (topic, message) => {
+  const data = JSON.parse(message.toString())
+
+  if (data.type === "lecteur_vin") {
+    console.log("VIN reçu dans le garage :", data.vin)
+  }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 client.on("message", async (topic, message) => {
   try {

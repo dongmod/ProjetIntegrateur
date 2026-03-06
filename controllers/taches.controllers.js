@@ -3,7 +3,7 @@ import supabase from '../config/supabaseClient.js'
 import { io } from "../server.js";
 import { terminerRendezVous } from './rendezvous.controller.js'
 export const createTaches = async (req, res) => {
-  const { rendezvous_id,employe_id,poste_id,titre, description, statut,heure_debut,heure_fin } = req.body
+  const { niveau_urgence,rendezvous_id,employe_id,poste_id,titre, description, statut,heure_debut,heure_fin } = req.body
 
   // Validation simple
   if (!titre || !description || !statut|| !heure_debut || !heure_fin) {
@@ -24,7 +24,8 @@ export const createTaches = async (req, res) => {
           description,
           statut, 
             heure_debut,
-            heure_fin
+            heure_fin,
+            niveau_urgence
         }
       ])
       .select()
