@@ -27,8 +27,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Initialisation Express
 const app = express();
 
-
 import authRoutes from './routes/auth.routes.js'
+
+import avisroutes from './routes/avis.routes.js'
 import rendezvousRoutes from './routes/rendezvous.routes.js'
 import vehiculesRoutes from './routes/vehicules.routes.js'
 import garageRoutes from './routes/garage.route.js'
@@ -101,6 +102,7 @@ app.post("/api/payment/webhook",
 
 app.use(express.json())
 // les routes
+app.use('/api/avis', avisroutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/rendezvous', rendezvousRoutes)
 app.use('/api/garages', garageRoutes)
