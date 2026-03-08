@@ -13,6 +13,8 @@ export function generateInvoicePDFBuffer(facture, items) {
     })
 
     // 🔹 HEADER
+    
+    doc.text(`Facture No: ${facture.numero}`, { align: "right" })
     doc.fontSize(22).text("SMART GARAGE", { align: "center" })
     doc.moveDown()
 

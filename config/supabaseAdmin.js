@@ -1,6 +1,7 @@
 // This file is used to create a Supabase client with the service role key, 
 // which allows us to perform admin operations on the database.
 
+
 import { createClient } from "@supabase/supabase-js";
 import { auto } from "async";
 import 'dotenv/config';

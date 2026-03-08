@@ -6,10 +6,12 @@ import { notificatiordvtermine } from '../utils/notificatiordvtermine.js';
 
 // Controller pour gérer les rendez-vous
 export const createRendezVous = async (req, res) => {
-   const userId = req.user.user_id // modification pour user_id 
+  const userId = req.user.user_id // modification pour user_id 
+
   const { vehicule_id, garage_id, date_rendezvous, type_service } = req.body
 console.log("REQ.USER =", req.user);
   try {
+
     // véhicule appartient au client
     const { data: vehicule, error: vehiculeError } = await supabase
       .from('vehicules')
@@ -18,10 +20,8 @@ console.log("REQ.USER =", req.user);
       .eq('client_id', userId)
       .single()
 console.log("vehicule =", vehicule_id);
-console.log("garage =", garage_id);
-console.log("da =", date_rendezvous);
-console.log("userId =", userId);
-console.log("service =", type_service);
+console.log("USER ID =", userId);
+console.log("Résultat Supabase vehicule =", vehicule, vehiculeError);
     if (vehiculeError || !vehicule) {
       return res.status(403).json({ message: "Véhicule invalide pour ce client" })
     }
@@ -63,7 +63,7 @@ io.emit("rdv:update", {
 });
 
       //notifier client par email (à faire)
-     const { data: userrdv } = await supabase
+    const { data: userrdv } = await supabase
       .from('utilisateurs')
       .select('*')
       .eq('user_id', vehicule.client_id)
@@ -73,21 +73,15 @@ io.emit("rdv:update", {
   if (error) return res.status(400).json(error)
       await confirmationEmail(userrdv.email, type_service, date_rendezvous)
       
- if (error) {
+if (error) {
       return res.status(400).json(error)
     }
 
     res.status(201).json({
       message: "Rendez-vous créé avec succès",
       rendez_vous: data
-    })
-    
-    
+    })    
     }
-
-
-
-
   } catch (err) {
     res.status(500).json({ message: "Erreur serveur", err })
   }
@@ -121,10 +115,30 @@ export const getMesRendezVous = async (req, res) => {
 export const deleteRendezVous = async (req, res) => {
   const rdvId = req.params.id
 
+
+
+   //recuperer la date du rendez-vous pour la notification
+   const { data: rdv } = await supabase
+   .from('rendez_vous')
+   .select('date_rendezvous')
+   .eq('id', rdvId)
+   .single()
+    if (rdvError || !rdv) {
+      return res.status(404).json({ message: "Rendez-vous introuvable" })
+    }
+    const now = new Date()
+    const rdvDate = new Date(rdv.date_rendezvous)
+
+    if (rdvDate - now < 24 * 60 * 60 * 1000) {
+      return res.status(400).json({ message: "Impossible d'annuler un rendez-vous à moins de 24h de l'heure prévue" })
+    }
+
+
   const { error } = await supabase
     .from('rendez_vous')
     .delete()
     .eq('id', rdvId)
+    
 // mise a jou du socket dasboard rendez-vous
 io.emit("rdv:update", {
   type: "deleted",
@@ -167,6 +181,23 @@ export const getAllRendezVous = async (req, res) => {
 export const updateRendezVous = async (req, res) => {
   const rdvId = req.params.id
   const { date_rendezvous, type_service, statut } = req.body
+
+
+const { data: rdvupdate } = await supabase 
+   .from('rendez_vous')
+   .select('date_rendezvous')
+   .eq('id', rdvId)
+   .single()
+    if ( !rdvupdate) {
+      return res.status(404).json({ message: "Rendez-vous introuvable" })
+    }
+    const now = new Date()
+    const rdvDateupdate = new Date(rdvupdate.date_rendezvous)
+
+    if (rdvDateupdate - now < 24 * 60 * 60 * 1000) {
+      return res.status(400).json({ message: "Impossible de modifier un rendez-vous à moins de 24h de l'heure prévue" })
+    }
+
 
   const { data, error } = await supabase
     .from('rendez_vous')
@@ -325,14 +356,14 @@ console.log(" transmission pour notif:", rendezvous_id);
 
     if (error || !rdv) {
       return { success: false, code: 404, message: "Rendez-vous n'existe pas" };
-     }
+}
 /*
     // 2) Vérifier que le statut permet la transition
     if (rdv.statut == "planifie") {
           return { success: false, code: 400, message: "Ce rendez-vous ne peut pas être terminé" };
     }else 
       if (rdv.statut == "termine") {      return { success: false, code: 400, message: "Ce rendez-vous est déjà terminé" };
-     }
+    }
 
 */
     // Récupérer les infos du client pour la notification
@@ -347,7 +378,11 @@ console.log(" transmission pour notif:", rendezvous_id);
       .select('email')
       .eq('user_id', userrdv.client_id)
       .single()
-    
+    //inserer date derniere maintenance dans la table des vehicules
+    const { error: updateError } = await supabase
+      .from("vehicules")
+      .update({ date_derniere_maint: new Date().toISOString().split('T')[0] })
+      .eq("id", rdv.vehicule_id);
 
     // 4) Notification (email, MQTT, etc.)
     await notificatiordvtermine(userrdv2.email)
@@ -368,5 +403,4 @@ console.log(" transmission pour notif:", rendezvous_id);
     return { success: false, code: 500, message: "Erreur serveur" };
 
   }
-
 };
