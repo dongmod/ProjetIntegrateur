@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
+import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
-import "./Dashboard.css";
+import "../Dashboard.css";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -76,11 +76,11 @@ const handleLogout = () => {
                 <li className="menu-item" onClick={() => navigate("/dashboard")}>
                   🏠 Tableau de bord
                 </li>
-                <li className="menu-item" onClick={() => navigate("/rendez-vous")}>
+                <li className="menu-item" onClick={() => navigate("/calendrier-rdv")}>
                   📅 Rendez-vous
                 </li>
-                <li className="menu-item" onClick={() => navigate("/taches")}>
-                  ✅ Gestion des tâches
+                <li className="menu-item" onClick={() => navigate("/creneaux")}>
+                  ✅ Gestion des creneaux
                 </li>
                 <li className="menu-item" onClick={() => navigate("/utilisateurs")}>
                   👥 Utilisateurs
@@ -144,7 +144,7 @@ const handleLogout = () => {
             <div className="actions-grid">
               <button
                 className="action-btn"
-                onClick={() => goTo("/rendez-vous")}
+                onClick={() => navigate("/calendrier-rdv")}
               >
                 Nouveau rendez-vous
               </button>

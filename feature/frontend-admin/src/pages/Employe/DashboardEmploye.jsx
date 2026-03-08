@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
+import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
-import "./Dashboard.css"; // se reutilise le meme style que pour admin 
+import "../Dashboard.css"; // se reutilise le meme style que pour admin 
 
 const DashboardEmploye = () => {
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ const DashboardEmploye = () => {
                 <li className="menu-item" onClick={() => goTo("/taches")}>
                   ✅ Mes tâches
                 </li>
-                <li className="menu-item" onClick={() => goTo("/rendez-vous")}>
+                <li className="menu-item" onClick={() => navigate("/mes-rendez-vous-employe")}>
                   📅 Mes rendez-vous
                 </li>
                 <li className="menu-item" onClick={() => goTo("/notifications")}>
@@ -146,7 +146,7 @@ const DashboardEmploye = () => {
               <button className="action-btn" onClick={() => goTo("/taches")}>
                 Voir mes tâches
               </button>
-              <button className="action-btn" onClick={() => goTo("/rendez-vous")}>
+              <button className="action-btn" onClick={() => navigate("/mes-rendez-vous-employe")}>
                 Voir mes rendez-vous
               </button>
               <button className="action-btn" onClick={() => goTo("/notifications")}>

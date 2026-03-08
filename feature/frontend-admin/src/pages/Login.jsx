@@ -21,76 +21,70 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (loading) return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (loading) return;
+  
+  setErrorMessage("");
+  setLoading(true);
 
-    setErrorMessage("");
-    setLoading(true);
+  try {
+    const res = await fetch("http://localhost:3001/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        email: email.trim().toLowerCase(),
+        mot_de_passe 
+      }),
+    });
 
-    try {
-      const cleanEmail = email.trim().toLowerCase();
+    const data = await res.json().catch(() => ({}));
 
-      // 1) Login contra tu backend
-  const res = await fetch("http://localhost:3001/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email: email.trim().toLowerCase(),
-          mot_de_passe }),
-      });
-
-  const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setErrorMessage(data?.message || `Erreur login (HTTP ${res.status})`);
-        return;
-      }
-      localStorage.setItem("token", data.token); // Sauvegarde le token pour les futurs appels à l'API backend
-
-      if (!data?.token) {
-        setErrorMessage("Token manquant dans la réponse du backend.");
-        return;
-      }
-
-
-
-      // ✅ Guardar token para apiFetch
-      localStorage.setItem("token", data.token);
-
-  const response2 = await fetch("http://localhost:3001/api/auth/me", {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-});
-
-if (!response2.ok) {
-  throw new Error(`HTTP ${response2.status}`);
-}
-
-setErrorMessage("Accès réservé au personnel");
-
-const payload = await response2.json();
-const role = payload?.role || payload?.user?.role || payload?.data?.role;
-
-console.log("ROLE:", role);
-
-if (role === "gestionnaire") return navigate("/dashboard");
-
-
-if (role === "employe") return navigate("/dashboard-employe");
-if (role === "client") return navigate("/client");
-
-setErrorMessage("Rôle inconnu ou manquant.");
-    } catch (err) {
-      console.error(err);
-      setErrorMessage(err?.message || "Une erreur inattendue s'est produite");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      setErrorMessage(data?.message || `Erreur login (HTTP ${res.status})`);
+      return;
     }
-  };
+
+    // Verifier token before storing
+    if (!data?.token) {
+      setErrorMessage("Token manquant dans la réponse du backend.");
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+
+    // Test de connexion à l'API backend pour récupérer le profil utilisateur
+    const response2 = await fetch("http://localhost:3001/api/auth/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${data.token}`,
+      },
+    });
+
+    if (!response2.ok) {
+      throw new Error(`HTTP ${response2.status}`);
+    }
+
+    const payload = await response2.json();
+    const role = payload?.role || payload?.user?.role || payload?.data?.role;
+    console.log("ROLE:", role);
+
+    // Rediriger selon le rôle
+    if (role === "gestionnaire") return navigate("/dashboard");
+    if (role === "employe") return navigate("/dashboard-employe");
+    if (role === "client") return navigate("/client");
+
+    // Si le rôle n'est pas reconnu, afficher une erreur générique
+    setErrorMessage("Accès réservé au personnel du garage.");
+
+  } catch (err) {
+    console.error(err);
+    setErrorMessage(err?.message || "Une erreur inattendue s'est produite");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleResetPassword = async () => {
     setErrorMessage("");
@@ -100,9 +94,6 @@ setErrorMessage("Rôle inconnu ou manquant.");
       alert("Entre ton email d'abord");
       return;
     }
-
-    // Aquí depende de tu backend: tu backend tiene reset por ID (/resetMot_de_passe/:id)
-    // Por ahora dejamos solo un mensaje, porque tu reset actual era de Supabase Auth.
     alert("Pour réinitialiser le mot de passe, il faut un endpoint côté backend (flow à définir).");
   };
 

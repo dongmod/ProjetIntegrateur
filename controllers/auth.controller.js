@@ -90,8 +90,9 @@ if (!data.verifie) {
     return res.status(401).json({ message: 'Mot de passe incorrect' })
   }
 
+  // Use user_id instead of id for JWT payload to match the database schema
   const token = jwt.sign(
-    { user_id: data.user_user_id, role: data.role },
+    { user_id: data.user_id, role: data.role },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
     
@@ -117,7 +118,6 @@ export const deleteUser = async (req, res) => {
 }
 
 //recuperer les infos de l'utilisateur connecté (profil)  <======NOUVEAU
-
 export const userconnected =  async (req, res) => {
   try {
     const userId = req.user?.user_id; // ← vient du token
@@ -144,11 +144,6 @@ export const userconnected =  async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
 };
-
-
-
-
-
 
 
 ///update
@@ -228,24 +223,25 @@ export const resetMot_de_passe = async (req, res) => {
 }
 
 
-// ADD ME POUR OBTENIR LES INFOS DE L'UTILISATEUR LOGGUÉ.   <======NOUVEAU
-
+// ADD ME POUR OBTENIR LES INFOS DE L'UTILISATEUR LOGGUÉ.   <======NOUVEAU 👈
 export const me = async (req, res) => {
   try {
-
-    const userId = req.user?.id;
+    console.log("ME → req.user =", req.user) // Nouveau : vérifier que le middleware auth fonctionne et que req.user est bien défini
+    const userId = req.user?.user_id;
+    console.log("ME → userId extrait du token =", userId) // Nouveau : vérifier que le user_id est bien extrait du token
 
     if (!userId) {
       return res.status(401).json({ message: "Invalid token payload (missing id)" });
     }
 
-
-
     const { data, error } = await supabase
       .from("utilisateurs")
-      .select("id, nom, prenom, email, role")
-      .eq("user_id", userId)          // 👈 CAMBIAR si tu token usa user_id
+      .select("user_id, nom, prenom, email, role,garage_id") //// 👈 user_id 
+      .eq("user_id", userId)          // 👈 
       .single();
+
+    console.log("ME → supabase data =", data) // 👈Nouveau : vérifier la réponse de Supabase
+    console.log("ME → supabase error =", error) // 👈Nouveau : vérifier les erreurs de Supabase
 
     if (error || !data) {
       return res.status(404).json({ message: "Profil introuvable" });
