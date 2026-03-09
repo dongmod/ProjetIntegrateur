@@ -51,7 +51,7 @@ export const createTaches = async (req, res) => {
 }
 
 export const getMesTaches = async (req, res) => {
-  const userId = req.user.id
+  const userId = req.user.user_id
 
   const { data, error } = await supabase
     .from('taches')
@@ -98,6 +98,26 @@ export const deleteTache = async (req, res) => {
 
   res.json({ message: "Tâche supprimée" })
 }
+
+
+export const getAllTaches = async (req, res) => {
+  const { data, error } = await supabase
+    .from('taches')
+    .select(`
+      *,
+      utilisateurs:employe_id (
+        nom, prenom
+      ),
+      postes_travail:poste_id (
+        nom, type_service, statut
+      )
+    `)
+    .order('created_at', { ascending: false })
+
+  if (error) return res.status(400).json(error)
+  res.json(data)
+}
+
 
 
 
@@ -187,17 +207,6 @@ console.log(".....////////////////////////////...ID reçu :", id);
 
     if (updateError1) {  return res.status(500).json({ message: "Erreur lors de la mise à jour du statut du rendez-vous" });
      }
-
-
-
-
-
-
-
-
-
-
-
 
 
         //terminerRendezVous(tacheData.rendezvous_id,commentaires)

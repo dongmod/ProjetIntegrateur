@@ -9,7 +9,10 @@ import Utilisateurs from "./pages/Admin/Utilisateurs";
 import CalendrierRDV from "./pages/Admin/CalendrierRDV";
 import MesRendezVousEmploye from "./pages/Employe/MesRDVEmploye";
 import GestionCreneaux from "./pages/Admin/GestionCreneaux";
-
+import MesTaches from "./pages/Employe/MesTaches"; 
+import KanbanTaches from "./pages/KanbanTaches"
+import GestionTaches from "./pages/Admin/GestionTaches";
+import CommentairesTache from "./pages/CommentairesTaches";
 
 function App() {
   return (
@@ -48,9 +51,9 @@ function App() {
 
       {/* Route pour le calendrier des rendez-vous */}
       <Route
-        path="/calendrier-rdv"
+        path="/rendez-vous"
         element={
-          <ProtectedRoute allowedRoles={["gestionnaire", "employe"]}>
+          <ProtectedRoute allowedRoles={["gestionnaire"]}>
             <CalendrierRDV />
           </ProtectedRoute>
         }
@@ -58,7 +61,7 @@ function App() {
 
       {/* Route pour l'employé et ses rendez-vous assignés */}
       <Route
-        path="/mes-rendez-vous-employe"
+        path="/mes-rendez-vous"
         element={
           <ProtectedRoute allowedRoles={["employe"]}>
             <MesRendezVousEmploye />
@@ -76,6 +79,42 @@ function App() {
       </ProtectedRoute>
     }
 />
+
+    <Route
+    path="/taches"
+    element={
+      <ProtectedRoute allowedRoles={["employe"]}>
+        <MesTaches/>
+      </ProtectedRoute>
+    }
+    />
+
+    <Route
+    path="/kanban"
+    element={
+      <ProtectedRoute allowedRoles={["gestionnaire","employe"]}>
+        <KanbanTaches/>
+      </ProtectedRoute>
+    }
+    />
+
+    <Route
+    path="/gestion-taches"
+    element={
+      <ProtectedRoute allowedRoles={["gestionnaire"]}>
+        <GestionTaches />
+      </ProtectedRoute>
+    }
+/>
+
+    <Route 
+    path="/taches/:tacheId/commentaires"
+    element={
+      <ProtectedRoute allowedRoles={["gestionnaire","employe"]}>
+      <CommentairesTache/>
+      </ProtectedRoute>
+    }
+    />
 
 </Routes> 
   );

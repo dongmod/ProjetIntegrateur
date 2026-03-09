@@ -17,6 +17,7 @@ import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
 import dotenv from 'dotenv'
 
+
 // Load env 
 dotenv.config()
 console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
@@ -55,6 +56,8 @@ import notificationsRoutes from './routes/notifications.route.js'
 import verificationmail from "./routes/confirmationmail.route.js";
 import commentaires_tachesRoutes from './routes/commentaires_taches.routes.js'
 import horairesGaragesRoutes from './routes/horaires_garages.routes.js'  ///NEW 
+import commentairesTachesRoutes from './routes/commentaires_taches.routes.js' // New 
+
 // dotenv.config()
 // console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
 
@@ -131,6 +134,7 @@ app.use('/api/crenaux',crenauxRoutes)
 app.use("/api/auth", verificationmail);
 app.use('/api/horaires-garage',horairesGaragesRoutes) ///NEW 
 app.use("/api/payment", paymentRoutes)
+app.use('/api/commentaires-taches',commentairesTachesRoutes) //New 
 //creation mqtt
 const mqttClient = mqtt.connect("mqtt://localhost:1883")
 
