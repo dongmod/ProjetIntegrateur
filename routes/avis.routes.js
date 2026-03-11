@@ -1,9 +1,11 @@
 import express from 'express'
 import { createavis,getavis,modifieravis,supprimeravis,moyenneGarage } from '../controllers/avis.controller.js'
 import { verifyToken } from '../middleware/authMiddleware.js';
+
+import upload from '../middleware/multer_images.js'
 const router = express.Router()
 
-router.post('/create', createavis)
+router.post('/create', upload.array('photos', 5), createavis)
 router.get('/getavis/:id', getavis)
 router.patch('/modifieravis/:id', modifieravis)
 router.delete('/supprimeravis/:id', supprimeravis)

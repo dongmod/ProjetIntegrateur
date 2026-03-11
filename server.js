@@ -181,6 +181,6 @@ initSocket(server);
 
 server.listen(process.env.PORT, () => {
 console.log(`Serveur lancé sur le port ${process.env.PORT}`);
-console.log("SECRET:", process.env.JWT_SECRET)
+//console.log("SECRET:", process.env.JWT_SECRET)
 
 });
