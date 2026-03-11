@@ -13,7 +13,7 @@ import supabase from './config/supabaseClient.js';
 import paymentRoutes from "./routes/payment.routes.js";
 import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
-
+import { initSocket } from "./websocket/socket.js";
 
 import dotenv from 'dotenv'
 
@@ -58,7 +58,7 @@ app.use(cors({
 
 
 
-//  WEBHOOK  AVANT express.json()
+//  WEBHOOK  AVANT express.json() pour pouvoir recevoir les données brutes de Stripe
 app.post("/api/payment/webhook",
     
 
@@ -83,7 +83,7 @@ app.post("/api/payment/webhook",
       const session = event.data.object
 
       const factureid = session.metadata.id
-        const client_a_notifier = session.metadata.user_email
+      const client_a_notifier = session.metadata.user_email
      
       await supabase
         .from("factures")
@@ -91,9 +91,11 @@ app.post("/api/payment/webhook",
         .eq("id", factureid)
         console.log(" Paiement confirmé pour facture:", factureid)
     
-        confirmationpaiement(client_a_notifier)
+        confirmationpaiement(client_a_notifier, factureid)
 
     }
+
+
 
     res.json({ received: true })
   }
@@ -173,21 +175,8 @@ app.post("/api/vin", (req, res) => {
 // Création du serveur HTTP
 const server = http.createServer(app);
 // Initialisation Socket.IO
+initSocket(server);
 
-const io = new Server(server, {
-  cors: {
-    origin: 'http://localhost:3001',
-
- }
-});
-io.on("connection", (socket) => {
-  console.log("Client connecté :", socket.id);
-    socket.on("disconnect", () => {
-    console.log("Client déconnecté :", socket.id);
-  });
-
-});
-// Démarrage du serveur HTTP + WebSocket
 
 
 server.listen(process.env.PORT, () => {
@@ -195,4 +184,3 @@ console.log(`Serveur lancé sur le port ${process.env.PORT}`);
 console.log("SECRET:", process.env.JWT_SECRET)
 
 });
-export { io };

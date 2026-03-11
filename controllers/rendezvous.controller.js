@@ -1,7 +1,19 @@
 import supabase from '../config/supabaseClient.js'
-import { io } from "../server.js";
+import { emitRdvUpdate,emitRdvDelete ,emitRdvCreate} from '../websocket/service.js';
+
 import { confirmationEmail } from '../utils/confirmationrdv.js';
 import { notificatiordvtermine } from '../utils/notificatiordvtermine.js';
+
+
+
+
+
+
+
+
+
+
+
 export const createRendezVous = async (req, res) => {
   const userId = req.user.user_id
   const { vehicule_id, garage_id, date_rendezvous, type_service } = req.body
@@ -45,19 +57,57 @@ console.log("Résultat Supabase vehicule =", vehicule, vehiculeError);
 
     if (existingRdv && existingRdv.length > 0) {
       return res.status(400).json({ message: "Rendez-vous déjà existant pour ce véhicule et ce garage à cette date" })
-    }else {
-      console.log("Aucun rendez-vous existant pour ce véhicule et ce garage à cette date, création possible.")
-    
+    }
     // insérer rendez-vous
-    const { data, error } = await supabase
+    const { data: rdvData, error: rdvError } = await supabase
       .from('rendez_vous')
       .insert([{  vehicule_id,  garage_id,  date_rendezvous,  type_service,  statut: 'planifie'}])
       .select()
-// mise a jou du socket dasboard rendez-vous
-io.emit("rdv:update", {
-  type: "created",
-  data: data[0]
-});
+    if (rdvError) {
+      return res.status(400).json({ message: "Erreur lors de la création du rendez-vous", error: rdvError })
+     }
+//image upload pour les rendez-vous
+const files = req.files|| [];
+let imageUrls = []
+console.log("FILES =", req.files)
+for (const file of files) {
+
+  const fileName = `Avant_rdv-${Date.now()}-${file.originalname}`
+
+  const { errorup } = await supabase.storage
+    .from("rendezvous-images")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype
+    })
+
+  if (errorup) {
+    return res.status(400).json(errorup)
+  }
+
+  const imageUrl =
+  `${process.env.SUPABASE_URL}/storage/v1/object/public/rendezvous-images/${fileName}`
+
+  imageUrls.push(imageUrl)
+}
+
+// insérer les images liées au rendez-vous
+    for (const url of imageUrls) {
+
+  await supabase
+    .from("rendezvous_images")
+    .insert([
+      {
+        rendezvous_id: rdvData[0].id,
+        image_url: url
+      }
+    ])
+}
+
+
+
+//appel du socket pour mettre a jour le dashboard en temps réel
+emitRdvCreate(rdvData[0].id, rdvData[0]); 
+
 
       //notifier client par email (à faire)
      const { data: userrdv } = await supabase
@@ -67,31 +117,29 @@ io.emit("rdv:update", {
       .single()
       
 
-  if (error) return res.status(400).json(error)
-      await confirmationEmail(userrdv.email, type_service, date_rendezvous)
+  //if (error) return res.status(400).json(error)
+  await confirmationEmail(userrdv.email, type_service, date_rendezvous)
       
- if (error) {
-      return res.status(400).json(error)
-    }
+
 
     res.status(201).json({
       message: "Rendez-vous créé avec succès",
-      rendez_vous: data
+      rendez_vous: rdvData
     })
     
-    
-    }
 
 
 
 
-  } catch (err) {
-    res.status(500).json({ message: "Erreur serveur", err })
+
+  } catch (error) {
+    console.error("Erreur serveur :", error)
+    res.status(500).json({ message: "Erreur serveur", error })
   }
 }
 export const getMesRendezVous = async (req, res) => {
-  const userId = req.user.id
-
+  const userId = req.user.user_id
+/*
   const { data, error } = await supabase
     .from('rendez_vous')
     .select(`
@@ -109,10 +157,39 @@ export const getMesRendezVous = async (req, res) => {
           .select('id')
           .eq('client_id', userId)
       ).data.map(v => v.id)
+    )*/
+//
+const { data, error } = await supabase
+  .from("rendez_vous")
+  .select(`
+    *,
+    vehicules (
+      marque,
+      modele,
+      plaque
+    ),
+    rendezvous_images (
+      id,
+      image_url,
+      created_at
     )
+  `)
+  .in(
+    "vehicule_id",
+    (
+      await supabase
+        .from("vehicules")
+        .select("id")
+        .eq("client_id", userId)
+    ).data.map(v => v.id)
+  );
+
 
   if (error) return res.status(400).json(error)
-
+ // si data est un tableau vide, retourner un message indiquant que le client n'a pas de rendez-vous
+  if (data.length === 0) {
+    return res.json({ message: "Vous n'avez aucun rendez-vous prévu." })
+  }
   res.json(data)
 }
 export const deleteRendezVous = async (req, res) => {
@@ -121,12 +198,12 @@ export const deleteRendezVous = async (req, res) => {
 
 
    //recuperer la date du rendez-vous pour la notification
-   const { data: rdv } = await supabase
+   const { data: rdv, error: rdvError1 } = await supabase
    .from('rendez_vous')
    .select('date_rendezvous')
    .eq('id', rdvId)
    .single()
-    if (rdvError || !rdv) {
+    if (rdvError1 || !rdv) {
       return res.status(404).json({ message: "Rendez-vous introuvable" })
     }
     const now = new Date()
@@ -143,11 +220,7 @@ export const deleteRendezVous = async (req, res) => {
     .eq('id', rdvId)
     
 // mise a jou du socket dasboard rendez-vous
-io.emit("rdv:update", {
-  type: "deleted",
-  id: rdvId
-});
-
+emitRdvDelete(rdvId, { deleted: true });
 
   if (error) return res.status(400).json(error)
 
@@ -181,17 +254,44 @@ const { data: rdvupdate } = await supabase
     .eq('id', rdvId)
     .select()
 // mise a jou du socket dasboard rendez-vous
-io.emit("rdv:update", {
-  type: "updated",
-  id: rdvId,
-  data: data[0]
-});
+emitRdvUpdate(rdvId, data[0]);
+
   if (error) return res.status(400).json(error)
 
   res.json(data[0])
 }
 
 
+
+
+
+
+export const RendezVousAll = async (req, res) => {
+
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .select(`
+      *,
+      vehicules (
+        marque,
+        modele,
+        plaque
+      )
+    `)
+    .in('vehicule_id',
+      (
+        await supabase
+          .from('vehicules')
+          .select('id')
+      ).data.map(v => v.id)
+    )
+
+  if (error) return res.status(400).json(error)
+  if (data.length === 0) {
+    return res.json({ message: "Vous n'avez aucun rendez-vous prévu." })
+  }
+  res.json(data)
+}
 
 
 //////terminer rendez-vous
@@ -235,7 +335,9 @@ console.log(" transmission pour notif:", rendezvous_id);
       .from("vehicules")
       .update({ date_derniere_maint: new Date().toISOString().split('T')[0] })
       .eq("id", rdv.vehicule_id);
-
+if (updateError) {
+      return res.status(500).json({ message: "Erreur lors de la mise à jour de la date de dernière maintenance du véhicule" });
+     }
     // 4) Notification (email, MQTT, etc.)
     await notificatiordvtermine(userrdv2.email)
    // mettre a jour la table des notifications pour le client

@@ -1,5 +1,5 @@
 import supabase from "../config/supabaseClient.js";
-import { io } from "../server.js";
+import { getIO } from "../websocket/socket.js";
 export const createFacture = async (req, res) => {
   console.log("USER:", req.user);
   try {
@@ -17,8 +17,16 @@ export const createFacture = async (req, res) => {
     if (rdvCheck.data.statut !== 'termine') {
       return res.status(400).json({ message: "Impossible de créer une facture pour un rendez-vous non terminé" })
     }
+    //verifier qu'il n'y a pas déjà une facture pour ce rendez-vous
+    const factureExist = await supabase
+      .from('factures')
+      .select('id')
+      .eq('rendezvous_id', rendezvous_id)
+      .single()
+    if (factureExist.data) {
+      return res.status(400).json({ message: "Une facture existe déjà pour ce rendez-vous" })
+    }
     let total = 0
-
     items.forEach(item => {
       total += item.quantite * item.prix_unitaire
     })
@@ -27,7 +35,7 @@ export const createFacture = async (req, res) => {
       .from('factures')
       .insert({
         rendezvous_id,
-        client_id: req.user.id,
+        client_id: req.user.user_id,
         total
       })
       .select()

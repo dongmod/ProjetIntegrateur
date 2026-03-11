@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-
+import { genererRecuPDF } from "./recu_paiement.js";
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -8,7 +8,10 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-export async function confirmationpaiement(email) {
+
+
+export async function confirmationpaiement(email, factureid) {
+  const pdfBuffer = await genererRecuPDF(factureid);
   await transporter.sendMail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -16,6 +19,12 @@ export async function confirmationpaiement(email) {
     html: `
       <h2>Votre paiement a été confirmé</h2>
       <p>merci de votre confiance.</p>
-    `
+    `,
+     attachments: [
+      {
+        filename: "votre facture.pdf",
+        content: pdfBuffer
+      }
+    ]
   });
 }
