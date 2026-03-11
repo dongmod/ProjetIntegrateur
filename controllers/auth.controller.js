@@ -160,7 +160,7 @@ export const getUserbyId = async (req, res) => {
   const { data, error } = await supabase
     .from('utilisateurs')
     .select('*')
-    .eq('id', userId)
+    .eq('user_id', userId)
 
   if (error) return res.status(400).json(error)
 
@@ -181,7 +181,7 @@ export const resetMot_de_passe = async (req, res) => {
   const { data: userData, error: userError } = await supabase
     .from('utilisateurs')
     .select('mot_de_passe')
-    .eq('id', userId)
+    .eq('user_id', userId)
     .single()
 
   if (userData && await bcrypt.compare(confirmation_mot_de_passe, userData.mot_de_passe)) {
@@ -191,7 +191,7 @@ export const resetMot_de_passe = async (req, res) => {
   const { data, error } = await supabase
     .from('utilisateurs')
     .update({ mot_de_passe: hashedmot_de_passe })
-    .eq('id', userId)
+    .eq('user_id', userId)
     .select()
 
   if (error) return res.status(400).json(error)

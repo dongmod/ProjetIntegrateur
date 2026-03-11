@@ -112,6 +112,13 @@ export default function ProfilPage() {
             >
               Sauvegarder
             </button>
+            <button
+  type="button"
+  onClick={() => router.push('/reset-password')}
+  className="w-full bg-gray-600 hover:bg-gray-700 text-white p-3 rounded font-semibold mt-2"
+>
+   Changer mon mot de passe
+</button>
           </form>
         </div>
       </div>
