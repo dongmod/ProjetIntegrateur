@@ -12,7 +12,10 @@ export default function RendezvousPage() {
   const [vehiculeId, setVehiculeId] = useState('')
   const [garageId, setGarageId] = useState('')
   const [dateRendezvous, setDateRendezvous] = useState('')
+  const [serviceId, setServiceId] = useState('')
   const [typeService, setTypeService] = useState('')
+  const [crenaux, setCrenaux] = useState<any[]>([])
+  const [creneauChoisi, setCreneauChoisi] = useState('')
   const [erreur, setErreur] = useState('')
   const [succes, setSucces] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -28,6 +31,15 @@ export default function RendezvousPage() {
     }
     chargerDonnees(token)
   }, [])
+
+  useEffect(() => {
+    if (dateRendezvous && serviceId) {
+      chargerCrenaux()
+    } else {
+      setCrenaux([])
+      setCreneauChoisi('')
+    }
+  }, [dateRendezvous, serviceId])
 
   const chargerDonnees = async (token: string) => {
     try {
@@ -51,11 +63,40 @@ export default function RendezvousPage() {
     }
   }
 
+  const chargerCrenaux = async () => {
+    const token = getToken()
+    try {
+      const date = dateRendezvous
+      const response = await fetch(
+        `http://localhost:3000/api/crenaux?date=${date}&service_id=${serviceId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      const data = await response.json()
+      setCrenaux(Array.isArray(data) ? data : [])
+      setCreneauChoisi('')
+    } catch (error) {
+      setCrenaux([])
+    }
+  }
+
+  const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = services.find((s: any) => s.id === e.target.value) as any
+    setServiceId(e.target.value)
+    setTypeService(selected?.nom || '')
+  }
+
   const handleAjouter = async (e: React.FormEvent) => {
     e.preventDefault()
     setErreur('')
     setSucces('')
     const token = getToken()
+
+    if (!creneauChoisi) {
+      setErreur('Veuillez choisir un créneau disponible')
+      return
+    }
+
+    const dateAvecCreneau = `${dateRendezvous}T${creneauChoisi}:00`
 
     try {
       const response = await fetch('http://localhost:3000/api/rendezvous', {
@@ -67,7 +108,7 @@ export default function RendezvousPage() {
         body: JSON.stringify({
           vehicule_id: vehiculeId,
           garage_id: garageId,
-          date_rendezvous: dateRendezvous,
+          date_rendezvous: dateAvecCreneau,
           type_service: typeService
         })
       })
@@ -76,12 +117,18 @@ export default function RendezvousPage() {
 
       if (response.ok) {
         setSucces('Rendez-vous créé!')
-        setVehiculeId('')
-        setGarageId('')
-        setDateRendezvous('')
-        setTypeService('')
-        setShowForm(false)
-        chargerDonnees(token!)
+        setTimeout(() => {
+          setVehiculeId('')
+          setGarageId('')
+          setDateRendezvous('')
+          setServiceId('')
+          setTypeService('')
+          setCrenaux([])
+          setCreneauChoisi('')
+          setShowForm(false)
+          setSucces('')
+          chargerDonnees(token!)
+        }, 2000)
       } else {
         setErreur(data.message || 'Erreur lors de la création')
       }
@@ -140,7 +187,7 @@ export default function RendezvousPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="flex items-center">
             <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-white mr-4">← Retour</button>
-            <h1 className="text-2xl font-bold">Mes rendez-vous</h1>
+            <h1 className="text-2xl font-bold">📅 Mes rendez-vous</h1>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -185,27 +232,53 @@ export default function RendezvousPage() {
               <div>
                 <label className="text-gray-300 block mb-1">Type de service</label>
                 <select
-                  value={typeService}
-                  onChange={(e) => setTypeService(e.target.value)}
+                  value={serviceId}
+                  onChange={handleServiceChange}
                   className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
                   required
                 >
                   <option value="">Choisir un service</option>
                   {services.map((s: any) => (
-                    <option key={s.id} value={s.nom}>{s.nom}</option>
+                    <option key={s.id} value={s.id}>{s.nom}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-gray-300 block mb-1">Date et heure</label>
+                <label className="text-gray-300 block mb-1">Date</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={dateRendezvous}
                   onChange={(e) => setDateRendezvous(e.target.value)}
                   className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
                   required
                 />
               </div>
+
+              {crenaux.length > 0 && (
+                <div>
+                  <label className="text-gray-300 block mb-2">Créneaux disponibles</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {crenaux.map((c: any, index: number) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setCreneauChoisi(c.debut)}
+                        className={`p-2 rounded text-sm font-semibold ${
+                          creneauChoisi === c.debut
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-700 hover:bg-gray-600 text-white'
+                        }`}
+                      >
+                        {c.debut} - {c.fin}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {dateRendezvous && serviceId && crenaux.length === 0 && (
+                <p className="text-yellow-400">Aucun créneau disponible pour cette date</p>
+              )}
 
               {erreur && <p className="text-red-400">{erreur}</p>}
               {succes && <p className="text-green-400">{succes}</p>}
@@ -266,19 +339,9 @@ export default function RendezvousPage() {
                   <p className="text-gray-400">Statut: {rdv.statut}</p>
                   {rdv.vehicules && <p className="text-gray-400">Véhicule: {rdv.vehicules.marque} {rdv.vehicules.modele}</p>}
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setRdvEdit(rdv)}
-                    className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    onClick={() => handleAnnuler(rdv.id)}
-                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
-                  >
-                    Annuler
-                  </button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button onClick={() => setRdvEdit(rdv)} className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">Modifier</button>
+                  <button onClick={() => handleAnnuler(rdv.id)} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Annuler</button>
                 </div>
               </div>
             ))
