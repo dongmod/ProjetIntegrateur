@@ -35,13 +35,42 @@ const verificationToken = jwt.sign(
   { expiresIn: "10m" }
 )
 
+
+
+//image upload pour les rendez-vous
+const file = req.file|| [];
+let imageUrl = null;
+console.log("FILE =", req.file)
+if (file) {
+
+  const fileName = `profil-${Date.now()}-${file.originalname}`
+
+  const { errorup } = await supabase.storage
+    .from("profil")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype
+    })
+ 
+  if (errorup) {
+    return res.status(400).json(errorup)
+  }
+
+   imageUrl =
+  `${process.env.SUPABASE_URL}/storage/v1/object/public/profil/${fileName}`
+ 
+}
+
+
 //insertion
   const { data, error } = await supabase
     .from('utilisateurs')
     .insert([
-      { nom, prenom, email, mot_de_passe: hashedmot_de_passe, role }
+      { nom, prenom, email,
+         mot_de_passe: hashedmot_de_passe, 
+         role, photos: imageUrl ? [imageUrl] : null }
     ])
     .select()
+
 
   if (error) return res.status(400).json(error)
 //envoyer le mail de verification
@@ -168,9 +197,37 @@ export const updateProfil = async (req, res) => {
   const Profil = req.params.id
   const { nom, prenom, email,telephone,preference,garage_id } = req.body
 
+
+
+//image upload pour les rendez-vous
+const file = req.file|| [];
+let imageUrl = null;
+console.log("FILE =", req.file)
+if (file) {
+
+  const fileName = `profil-${Date.now()}-${file.originalname}`
+
+  const { errorup } = await supabase.storage
+    .from("profil")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype
+    })
+ 
+  if (errorup) {
+    return res.status(400).json(errorup)
+  }
+
+   imageUrl =
+  `${process.env.SUPABASE_URL}/storage/v1/object/public/profil/${fileName}`
+ 
+}
+
+
+
   const { data, error } = await supabase
     .from('utilisateurs')
-    .update({ nom, prenom, email, telephone, preference, garage_id })
+    .update({ nom, prenom, email, 
+      telephone, preference, garage_id, photos: imageUrl ? [imageUrl] : null })
     .eq('user_id', Profil)
     .select()
 

@@ -22,6 +22,34 @@ export const createavis = async (req, res) => {
     commentaire,
     photos
   } = req.body
+ 
+
+//image upload pour les rendez-vous
+const files = req.files|| [];
+let imageUrls = []
+console.log("FILES =", req.files)
+for (const file of files) {
+
+  const fileName = `Avis_client-${Date.now()}-${file.originalname}`
+
+  const { errorup } = await supabase.storage
+    .from("Avis-images")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype
+    })
+
+  if (errorup) {
+    return res.status(400).json(errorup)
+  }
+
+  const imageUrl =
+  `${process.env.SUPABASE_URL}/storage/v1/object/public/Avis-images/${fileName}`
+
+  imageUrls.push(imageUrl)
+}
+
+
+
 
   const { data, error } = await supabase
     .from("avis_garage")
@@ -34,9 +62,13 @@ export const createavis = async (req, res) => {
       accueil,
       details,
       commentaire,
-      photos
+      photos: imageUrls
     }])
     .select()
+
+
+
+
 
   if (error) return res.status(400).json(error)
 

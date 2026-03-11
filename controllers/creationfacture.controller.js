@@ -31,21 +31,24 @@ export const createFacture = async (req, res) => {
       total += item.quantite * item.prix_unitaire
     })
 
-    const { data: facture } = await supabase
-      .from('factures')
-      .insert({
-        rendezvous_id,
-        client_id: req.user.user_id,
-        total
-      })
-      .select()
-      .single()
-      //rechercher le client dans vehicules pour mettre à jour le km_derniere_maint
+
+          //rechercher le client dans vehicules pour mettre à jour le km_derniere_maint
       const { data: vehicule } = await supabase
       .from('vehicules')
       .select('id, km_derniere_maint,client_id')
       .eq('id', rdvCheck.data.vehicule_id)
       .single()
+
+    const { data: facture } = await supabase
+      .from('factures')
+      .insert({
+        rendezvous_id,
+        client_id: vehicule.client_id,
+        total
+      })
+      .select()
+      .single()
+
       // mise a jour du dernier kilométrage de maintenance du véhicule
     const { error: updateError } = await supabase
       .from("vehicules")
@@ -77,7 +80,7 @@ export const createFacture = async (req, res) => {
   }
 }
 export const getMesfactures = async (req, res) => {
-  const userId = req.user.id
+  const userId = req.user.user_id
 
   const { data, error } = await supabase
     .from('factures')
@@ -86,7 +89,7 @@ export const getMesfactures = async (req, res) => {
 
 
 
-  if (error) return res.status(400).json(error)
+  if (error || !data) return res.status(400).json(error)
 
   res.json(data) 
 }
