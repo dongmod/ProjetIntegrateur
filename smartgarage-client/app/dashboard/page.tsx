@@ -64,6 +64,11 @@ export default function Dashboard() {
                         <h2 className="text-xl font-semibold mb-2">📋 Historique</h2>
                         <p className="text-gray-400">Voir l'historique de vos services</p>
                     </div>
+                     <div className="bg-gray-800 p-6 rounded-lg cursor-pointer hover:bg-gray-700"
+                    onClick={() => router.push('/evaluations')}>
+                    <h2 className="text-xl font-semibold mb-2">⭐ Évaluations</h2>
+                    <p className="text-gray-400">Voir et laisser des avis</p>
+</div>
                 </div>
             </div>
         </div>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useRef } from 'react'
+import Tesseract from 'tesseract.js'
 
 export default function VehiculesPage() {
   const router = useRouter()
@@ -64,6 +66,34 @@ export default function VehiculesPage() {
       setErreur('Erreur lors du décodage du VIN')
     }
   }
+  const handleImage = async (e: any) => {
+  const file = e.target.files[0]
+  let text = ""
+
+  try {
+    const { data: { text: extractedText } } = await Tesseract.recognize(
+      file,
+      "eng+fra",
+      { logger: (m) => console.log(m) }
+    )
+
+    text = extractedText
+    console.log("Texte extrait :", text)
+
+  } catch (err) {
+    console.error("Erreur OCR :", err)
+  }
+
+  const vinRegex = /\b[A-HJ-NPR-Z0-9]{17}\b/g
+  const found = text.match(vinRegex)
+
+  if (found) {
+    setVin(found[0])
+    scannerVIN(found[0])
+  } else {
+    setErreur("Aucun VIN détecté")
+  }
+}
 
   const handleAjouter = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,6 +253,23 @@ export default function VehiculesPage() {
                     className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
                     placeholder="1HGBH41JXMN109186"
                   />
+                  <div className="mt-2">
+                  <button
+  type="button"
+  onClick={() => document.getElementById('vinFile')?.click()}
+  className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded mt-2"
+>
+  Scanner VIN
+</button>
+
+<input
+  id="vinFile"
+  type="file"
+  accept="image/*"
+  onChange={handleImage}
+  style={{ display: "none" }}
+/>
+                        </div>
                 </div>
               </div>
 
@@ -281,14 +328,59 @@ export default function VehiculesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-gray-300 block mb-1">VIN</label>
-                  <input
-                    type="text"
-                    value={vehiculeEdit.vin || ''}
-                    onChange={(e) => setVehiculeEdit({...vehiculeEdit, vin: e.target.value})}
-                    className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
-                  />
-                </div>
+  <label className="text-gray-300 block mb-1">VIN</label>
+  <input
+    type="text"
+    value={vehiculeEdit.vin || ''}
+    onChange={(e) => setVehiculeEdit({ ...vehiculeEdit, vin: e.target.value })}
+    className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
+  />
+
+  <div className="mt-2">
+    <button
+      type="button"
+      onClick={() => document.getElementById('vinFileEdit')?.click()}
+      className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded"
+    >
+      Scanner VIN
+    </button>
+
+    <input
+      id="vinFileEdit"
+      type="file"
+      accept="image/*"
+      onChange={async (e) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        let text = ""
+
+        try {
+          const { data: { text: extractedText } } = await Tesseract.recognize(
+            file,
+            "eng+fra",
+            { logger: (m) => console.log(m) }
+          )
+          text = extractedText
+        } catch (err) {
+          console.error("Erreur OCR :", err)
+          setErreur("Erreur OCR")
+          return
+        }
+
+        const vinRegex = /\b[A-HJ-NPR-Z0-9]{17}\b/g
+        const found = text.match(vinRegex)
+
+        if (found) {
+          setVehiculeEdit({ ...vehiculeEdit, vin: found[0] })
+        } else {
+          setErreur("Aucun VIN détecté")
+        }
+      }}
+      style={{ display: "none" }}
+    />
+  </div>
+</div>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
                 <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded">
