@@ -1,66 +1,47 @@
-/*import mqtt from "mqtt"
-import supabase from "../config/supabaseClient.js"
 
-const client = mqtt.connect("mqtt://localhost:1883")
-
-client.on("connect", () => {
-  console.log("MQTT connecté sur Raspberry")
-  client.subscribe("garage/poste")
-})
-
-client.on("message", async (topic, message) => {
-
-  try {
-    const data = JSON.parse(message.toString())
-
-    console.log("Message reçu :", data)
-
-    await supabase
-      .from("postes_travail")
-      .update({ statut: data.statut })
-      .eq("id", data.poste_id)
-
-    console.log("Statut mis à jour en DB")
-
-  } catch (err) {
-    console.error("Erreur MQTT :", err)
-  }
-})
-*/
 import mqtt from "mqtt"
 import supabase from "../config/supabaseClient.js"
 import { da, de } from "zod/v4/locales"
 
-const client = mqtt.connect("mqtt://localhost:1883")
-const clientvin = mqtt.connect("mqtt://localhost:1883")
+// ---------------- LOGGING ----------------
+const log = {
+  info: (...msg) => console.log("[INFO]", ...msg),
+  warn: (...msg) => console.warn("[WARN]", ...msg),
+  error: (...msg) => console.error("[ERROR]", ...msg),
+};
+const MQTT_URL = "mqtt://localhost:1883";
+const TOPIC_CAPTEUR = "garage/capteur";
+const TOPIC_VIN = "garage/capteurvin";
+const client = mqtt.connect(MQTT_URL)
+const clientvin = mqtt.connect(MQTT_URL)
+
+//// mes connections MQTT
 client.on("connect", () => {
-  console.log("--------------------- Backend MQTT connecté,  --------continuer pour remplacer la plaque----------------")
-  client.subscribe("garage/capteur")
+  console.log("--------------------- Backend MQTT connecté  capteur-------------")
+  client.subscribe(TOPIC_CAPTEUR)
+  console.log("Abonné aux topics : garage/capteur ")
 })
 
-// mqtt pour le telephone
-clientvin.subscribe("garage/capteurvin")
+clientvin.on("connect", () => {
+  console.log("--------------------- Backend MQTT connecté  vin-------------")
+  clientvin.subscribe(TOPIC_VIN)
+  console.log("Abonné aux topics : vin/capteurvin ")
 
+})
+//-----------------mqtt vin------------------
 clientvin.on("message", (topic, message) => {
+  try {
   const data = JSON.parse(message.toString())
 
   if (data.type === "lecteur_vin") {
-    console.log("VIN reçu dans le garage :", data.vin)
+    log.info("VIN reçu dans le garage :", data.vin)
+  }else {
+      log.warn("Message VIN avec type inconnu:", data);
+    }
+    } catch (err) {
+    log.error("Erreur parsing message VIN:", err);
   }
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
+});
 
 
 client.on("message", async (topic, message) => {
@@ -68,7 +49,7 @@ client.on("message", async (topic, message) => {
 
     const payloaddata = JSON.parse(message.toString())
 
-    console.log(" Message reçu :", payloaddata)
+    log.info("Message reçu sur", topic, ":", payloaddata)
 
     //  Trouver poste associé au capteur
     const { data: capteur, error } = await supabase
@@ -78,11 +59,11 @@ client.on("message", async (topic, message) => {
       .single()
 
     if (error || !capteur) {
-      console.log(" Capteur non trouvé en DB")
+      log.info(" Capteur non trouvé en DB")
       return
     }
 
-console.log(" Capteur trouvé en DB :", capteur)
+log.info(" Capteur trouvé en DB :", capteur)
 switch (payloaddata.type) {
   case "capteurmagnétique":
 

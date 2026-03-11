@@ -7,7 +7,7 @@ const router = express.Router()
 
 router.post('/create', upload.array('photos', 5), createavis)
 router.get('/getavis/:id', getavis)
-router.patch('/modifieravis/:id', modifieravis)
+router.patch('/modifieravis/:id',upload.array('photos', 5), modifieravis)
 router.delete('/supprimeravis/:id', supprimeravis)
 
 router.get('/moyenne/:id', moyenneGarage)
