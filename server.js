@@ -1,13 +1,19 @@
 import express from 'express'
+// importation du cron pour la planification des tâches de relance de maintenance
+import "./utils/planificateur_de_tache.js"
+import "./utils/planificationrappelavant24h.js"
 import Stripe from "stripe";
 import http from "http";
 import "./mqtt/mqttClient.js"
 import { Server } from "socket.io";
+//mqtt
+import mqtt from 'mqtt';
 import supabase from './config/supabaseClient.js';
 //import from payment routes
-import paymentRoutes from "./routes/payment.routes.js"
+import paymentRoutes from "./routes/payment.routes.js";
+import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
-
+import { initSocket } from "./websocket/socket.js";
 
 import dotenv from 'dotenv'
 
@@ -21,8 +27,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Initialisation Express
 const app = express();
 
-
 import authRoutes from './routes/auth.routes.js'
+
+import avisroutes from './routes/avis.routes.js'
 import rendezvousRoutes from './routes/rendezvous.routes.js'
 import vehiculesRoutes from './routes/vehicules.routes.js'
 import garageRoutes from './routes/garage.route.js'
@@ -41,7 +48,9 @@ import commentaires_tachesRoutes from './routes/commentaires_taches.routes.js'
 
 
 app.use(cors({
-  origin: 'http://localhost:3001',
+    //origin: ["http://localhost:5173", "http://localhost:5174"],
+ origin: "*",
+
   methods: ['GET','POST','PUT','DELETE', 'PATCH'],
   credentials: true
 }));
@@ -49,7 +58,7 @@ app.use(cors({
 
 
 
-//  WEBHOOK  AVANT express.json()
+//  WEBHOOK  AVANT express.json() pour pouvoir recevoir les données brutes de Stripe
 app.post("/api/payment/webhook",
     
 
@@ -74,14 +83,19 @@ app.post("/api/payment/webhook",
       const session = event.data.object
 
       const factureid = session.metadata.id
-
-      console.log(" Paiement confirmé pour facture:", factureid)
-
+      const client_a_notifier = session.metadata.user_email
+     
       await supabase
         .from("factures")
         .update({ statut: "payee" })
         .eq("id", factureid)
+        console.log(" Paiement confirmé pour facture:", factureid)
+    
+        confirmationpaiement(client_a_notifier, factureid)
+
     }
+
+
 
     res.json({ received: true })
   }
@@ -93,6 +107,7 @@ app.post("/api/payment/webhook",
 
 app.use(express.json())
 // les routes
+app.use('/api/avis', avisroutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/rendezvous', rendezvousRoutes)
 app.use('/api/garages', garageRoutes)
@@ -109,26 +124,62 @@ app.use("/api/capteurs", capteursRoutes)
 app.use("/api/genererfacture", genererfactureRoutes);
 app.use("/api/auth", verificationmail);
 app.use("/api/payment", paymentRoutes)
+//creation mqtt
+const mqttClient = mqtt.connect("mqtt://localhost:1883")
+
+mqttClient.on("connect", () => {
+  //apres connexion on verifie
+  console.log("Connecté au broker MQTT")
+})
+
+
+
+
+// Route réception VIN
+app.post("/api/vin", (req, res) => {
+  const { vin } = req.body
+
+  const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/
+
+  if (!vin || !vinRegex.test(vin)) {
+    return res.status(400).json({ message: "VIN invalide" })
+  }
+
+  const payload = {
+    sensor_id: "af3979a0-791e-4cfe-bcc1-67b795de8c24",
+    vin: vin,
+    type: "lecteur_vin",
+    timestamp: new Date().toISOString()
+  }
+
+  mqttClient.publish("garage/capteurvin", JSON.stringify(payload))
+
+  console.log("VIN envoyé via MQTT →", payload)
+
+  res.json({ message: "VIN envoyé au système" })
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Création du serveur HTTP
 const server = http.createServer(app);
 // Initialisation Socket.IO
+initSocket(server);
 
-const io = new Server(server, {
-  cors: {
-    origin: 'http://localhost:3001',
-
- }
-});
-io.on("connection", (socket) => {
-  console.log("Client connecté :", socket.id);
-    socket.on("disconnect", () => {
-    console.log("Client déconnecté :", socket.id);
-  });
-
-});
-// Démarrage du serveur HTTP + WebSocket
 
 
 server.listen(process.env.PORT, () => {
@@ -136,4 +187,3 @@ console.log(`Serveur lancé sur le port ${process.env.PORT}`);
 console.log("SECRET:", process.env.JWT_SECRET)
 
 });
-export { io };

@@ -182,3 +182,16 @@ Dans l'interface admin, sélectionner un device et une action:
 - CORS configuré
 - Validation des deviceId pour WebSocket
 - Journalisation des commandes
+
+
+
+## Créer un bucket de stockage
+
+Dans Supabase :
+
+Va dans Storage
+
+Clique Create bucket
+
+Nom :
+choisir public

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer"
 import supabase from "../config/supabaseClient.js"
-import { io } from "../server.js";
+import { getIO } from "../websocket/socket.js";
 import { generateInvoicePDFBuffer } from "../utils/facturemail.js"
 
 export const sendFactureByEmail = async (req, res) => {
@@ -24,7 +24,7 @@ export const sendFactureByEmail = async (req, res) => {
     const { data: client } = await supabase
       .from("utilisateurs")
       .select("email")
-      .eq("id", facture.client_id)
+      .eq("user_id", facture.client_id)
       .single()
 
     //  Générer PDF en mémoire
