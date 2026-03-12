@@ -27,13 +27,17 @@ export async function maintenacenitifEmail(user, type_service) {
     return;
   }
 
-  await transporter.sendMail({
-    from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
-    to: client.email,
-    subject: "Rendez-vous de maintenance à venir",
-    html: `
-      <h2>Rendez-vous de maintenance à venir</h2>
-      <p>Votre rendez-vous pour le service <strong>${type_service}</strong> est a venir. Pensez y</p>
-    `
-  });
+try {
+    await transporter.sendMail({
+      from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
+      to: client.email,
+      subject: "Rendez-vous de maintenance à venir",
+      html: `
+        <h2>Rendez-vous de maintenance à venir</h2>
+        <p>Votre rendez-vous pour le service <strong>${type_service}</strong> est a venir. Pensez y</p>
+      `
+    });
+  } catch (err) {
+    console.error("Erreur envoi email maintenance:", err.message);
+  }
 }

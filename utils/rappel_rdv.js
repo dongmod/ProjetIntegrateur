@@ -28,13 +28,17 @@ export async function rappelrdv(vehicule_marque, vehicule_plaque, type_service, 
     return;
   }
 
-  await transporter.sendMail({
-    from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
-    to: client.email,
-    subject: "Rappel de votre rendez-vous",
-    html: `
-      <h2>ceci est un rappel</h2>
-      <p>Votre rendez-vous pour le service <strong>${type_service}</strong> de votre ${vehicule_marque} (${vehicule_plaque}) est pour demain. Pensez y</p>
-    `
-  });
+try {
+    await transporter.sendMail({
+      from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
+      to: client.email,
+      subject: "Rappel de votre rendez-vous",
+      html: `
+        <h2>ceci est un rappel</h2>
+        <p>Votre rendez-vous pour le service <strong>${type_service}</strong> de votre ${vehicule_marque} (${vehicule_plaque}) est pour demain. Pensez y</p>
+      `
+    });
+  } catch (err) {
+    console.error("Erreur envoi email rappel:", err.message);
+  }
 }
