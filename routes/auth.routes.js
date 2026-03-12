@@ -14,10 +14,18 @@ import {
 
 import { verifyToken } from '../middleware/authMiddleware.js'
 
-const router = express.Router()
 
 router.get('/me', verifyToken, me)
 router.post('/register', register)
+
+
+
+
+import upload from '../middleware/multer_images.js'
+const router = express.Router()
+
+router.post('/register', upload.single('photos'), register)   //profil
+router.patch('/profil/:id', upload.single('photos'), updateProfil) //profil 
 router.post('/login', login)
 router.patch('/profil/:id', updateProfil)
 router.delete('/deleteUser/:id', deleteUser)

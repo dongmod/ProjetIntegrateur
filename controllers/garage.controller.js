@@ -1,5 +1,5 @@
 import supabase from '../config/supabaseClient.js'
-import { io } from "../server.js";
+import { getIO } from "../websocket/socket.js";
 export const createGarage = async (req, res) => {
   const { nom, adresse, telephone, email } = req.body
 

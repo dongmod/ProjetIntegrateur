@@ -1,6 +1,7 @@
 import e from 'express'
 import supabase from '../config/supabaseClient.js'
-import { io } from "../server.js";
+
+import { getIO } from "../websocket/socket.js";
 import { terminerRendezVous } from './rendezvous.controller.js'
 
 

@@ -4,6 +4,7 @@ import express from 'express'
 // importation du cron pour la planification des tâches de relance de maintenance
 import "./utils/planificateur_de_tache.js"
 import "./utils/planificationrappelavant24h.js"
+import "./utils/tache_verifie_activite_capteur.js"
 import Stripe from "stripe";
 import http from "http";
 import "./mqtt/mqttClient.js"
@@ -15,6 +16,9 @@ import supabase from './config/supabaseClient.js';
 import paymentRoutes from "./routes/payment.routes.js";
 import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
+
+
+import { initSocket } from "./websocket/socket.js";
 import dotenv from 'dotenv'
 import profilsRoutes from './routes/profils.routes.js'
 
@@ -75,7 +79,7 @@ app.use(cors({
 
 
 
-//  WEBHOOK  AVANT express.json()
+//  WEBHOOK  AVANT express.json() pour pouvoir recevoir les données brutes de Stripe
 app.post("/api/payment/webhook",
     
 
@@ -101,16 +105,17 @@ app.post("/api/payment/webhook",
 
       const factureid = session.metadata.id
         const client_a_notifier = session.metadata.user_email
-
       await supabase
         .from("factures")
         .update({ statut: "payee" })
         .eq("id", factureid)
         console.log(" Paiement confirmé pour facture:", factureid)
     
-        confirmationpaiement(client_a_notifier)
+        confirmationpaiement(client_a_notifier, factureid)
 
     }
+
+
 
     res.json({ received: true })
   }
@@ -176,8 +181,6 @@ app.post("/api/vin", (req, res) => {
 })
 
 
-
-
 //START SERVER
 const httpServer = http.createServer(app);
 export const io = new Server(httpServer, {
@@ -204,4 +207,27 @@ httpServer.listen(process.env.PORT, () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+// Création du serveur HTTP
+const server = http.createServer(app);
+// Initialisation Socket.IO
+initSocket(server);
+
+
+
+server.listen(process.env.PORT, () => {
+console.log(`Serveur lancé sur le port ${process.env.PORT}`);
+//console.log("SECRET:", process.env.JWT_SECRET)
+
+});
 

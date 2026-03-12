@@ -9,14 +9,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 router.post("/creatiopayment", verifyToken, async (req, res) => {
   try {
     const { amount, rendezvous_id } = req.body
+    console.log("amount =", amount)
+    console.log("rendezvous_id =", rendezvous_id)
     const { data: facturerdv } = await supabase
       .from("factures")
       .select("*")
       .eq("rendezvous_id", rendezvous_id)
       .single()
+      console.log("facturerdv =", facturerdv)
     // retrouver  client_id dans factures
-    const client_id = facturerdv.client_id
-    console.log("client_id à notifier =", client_id)
+   
+    if (!facturerdv || !facturerdv.client_id) {
+      return res.status(400).json({ message: "Client ID non trouvé pour ce rendez-vous" })
+    }
+     const client_id = facturerdv.client_id
+
+    //console.log("client_id à notifier =", client_id)
     // retrouver  email du client dans utilisateurs
     const { data: client } = await supabase
       .from("utilisateurs")

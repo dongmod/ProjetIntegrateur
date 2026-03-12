@@ -1,6 +1,6 @@
 import PDFDocument from "pdfkit"
 import supabase from "../config/supabaseClient.js"
-import { io } from "../server.js";
+import { getIO } from "../websocket/socket.js";
 import { fa } from "zod/v4/locales";
 import path from "path"
 export const downloadFacture = async (req, res) => {
