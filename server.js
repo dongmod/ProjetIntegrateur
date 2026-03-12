@@ -2,6 +2,7 @@ import express from 'express'
 // importation du cron pour la planification des tâches de relance de maintenance
 import "./utils/planificateur_de_tache.js"
 import "./utils/planificationrappelavant24h.js"
+import "./utils/tache_verifie_activite_capteur.js"
 import Stripe from "stripe";
 import http from "http";
 import "./mqtt/mqttClient.js"
