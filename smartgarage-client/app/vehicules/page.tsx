@@ -28,7 +28,7 @@ export default function VehiculesPage() {
       return
     }
     const payload = JSON.parse(atob(token.split('.')[1]))
-    setUserId(payload.id)
+setUserId(payload.user_id || payload.id)
     chargerVehicules(token)
   }, [])
 
@@ -108,7 +108,7 @@ export default function VehiculesPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ marque, modele, annee, vin, plaque, utilisateur_id: userId })
+        body: JSON.stringify({ marque, modele, annee, plaque, vin: vin || null })
       })
 
       const data = await response.json()
@@ -266,6 +266,7 @@ export default function VehiculesPage() {
   id="vinFile"
   type="file"
   accept="image/*"
+  capture="environment"
   onChange={handleImage}
   style={{ display: "none" }}
 />
