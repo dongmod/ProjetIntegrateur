@@ -44,13 +44,13 @@ export default function FacturesPage() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          amount: facture.montant_total * 100,
-          rendezvous_id: facture.id
+          amount : facture.total,
+          rendezvous_id: facture.rendezvous_id
         })
       })
 
       const data = await response.json()
-
+console.log(data)
       if (data.url_de_payement) {
         window.location.href = data.url_de_payement
       } else {
@@ -124,9 +124,9 @@ export default function FacturesPage() {
               <div key={f.id} className="bg-gray-800 p-6 rounded-lg">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Facture #{f.id?.slice(0, 8)}</h3>
-                    <p className="text-gray-400">Date: {new Date(f.created_at).toLocaleDateString('fr-CA')}</p>
-                    <p className="text-gray-400">Montant: <span className="text-white font-semibold">{f.montant_total} $</span></p>
+                    <h3 className="text-xl font-semibold mb-2">Facture <span className="text-white font-semibold">{f.numero} </span></h3>
+                    <p className="text-gray-400">Date: {new Date(f.date_emission).toLocaleDateString('fr-CA')}</p>
+                    <p className="text-gray-400">Montant: <span className="text-white font-semibold">{f.total} $</span></p>
                     <p className={`font-semibold ${getStatutColor(f.statut)}`}>
                       Statut: {f.statut}
                     </p>
