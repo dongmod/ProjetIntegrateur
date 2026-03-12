@@ -11,17 +11,12 @@ import {
     userconnected,
     me,
 } from '../controllers/auth.controller.js'
-
 import { verifyToken } from '../middleware/authMiddleware.js'
-
+import upload from '../middleware/multer_images.js'
 
 router.get('/me', verifyToken, me)
 router.post('/register', register)
 
-
-
-
-import upload from '../middleware/multer_images.js'
 const router = express.Router()
 
 router.post('/register', upload.single('photos'), register)   //profil
@@ -36,5 +31,6 @@ router.get('/getUser', getUser)
 router.get('/getUserbyId/:id', getUserbyId)
 router.get('/test', (req, res) => res.json({ ok: true }))
 
-export default router
+
 console.log("Auth routes loaded") 
+export default router
