@@ -2,11 +2,10 @@ import supabase from '../config/supabaseClient.js'
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken'
 import { sendVerificationEmail } from '../utils/email.js';
-<<<<<<< HEAD
+
 // import { io } from "../server.js";
-=======
+
 import { getIO } from "../websocket/socket.js";
->>>>>>> origin/feature/backend
 import { schema } from "../Zod/zodcreationuser.js";
 import { schema1 } from "../Zod/validationlogin.js";
 import { verifyToken } from '../middleware/authMiddleware.js';
