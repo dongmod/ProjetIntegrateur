@@ -331,12 +331,16 @@ export const assignerRendezVous = async (req,res) => {
   const {employe_id, 
     poste_travail_id,
     date_rendezvous} = req.body
+  console.log("ASSIGNER RDV - body:", req.body)  // ← Nouveau pour verifier si le rdv est modiffie 
+  console.log("ASSIGNER RDV - id:", rdvId) 
   
   const {data,error} =await supabase 
-    .from('rendez-vous')
+    .from('rendez_vous')
     .update({employe_id, poste_travail_id,date_rendezvous})
     .eq('id,rdvId')
     .select()
+  console.log("ASSIGNER ERROR:", error)  // ← New 
+  console.log("ASSIGNER DATA:", data)    // ← New 
 
     if (error) return res.status(400).json(error)
       res.json(data[0])

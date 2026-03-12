@@ -1,13 +1,14 @@
 import supabase from '../config/supabaseClient.js';
 import nodemailer from "nodemailer";
+import {sendEmail} from "./email.js" //<=== New 
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS
+//   }
+// });
 
 export async function maintenacenitifEmail(user, type_service) {
 
@@ -27,13 +28,15 @@ export async function maintenacenitifEmail(user, type_service) {
     return;
   }
 
-  await transporter.sendMail({
+// sendEmail gere les erreurs, plus de crash 
+
+return await sendEmail({ 
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: client.email,
     subject: "Rendez-vous de maintenance à venir",
     html: `
       <h2>Rendez-vous de maintenance à venir</h2>
-      <p>Votre rendez-vous pour le service <strong>${type_service}</strong> est a venir. Pensez y</p>
+      <p>Votre rendez-vous pour le service <strong>${type_service}</strong> est a venir. Pensez y ! </p>
     `
   });
 }

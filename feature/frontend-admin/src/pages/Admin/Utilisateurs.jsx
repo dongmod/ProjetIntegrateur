@@ -307,6 +307,12 @@ const Utilisateurs = () => {
                         <td style={styles.td}>
                           <button style={styles.editBtn} onClick={() => openEdit(user)}>✏️ Éditer</button>
                           <button style={styles.deleteBtn} onClick={() => setDeleteTarget(user)}>🗑️ Supprimer</button>
+                          <button
+                            onClick={() => navigate(`/profil/${user.user_id}`)}
+                            style={{ background: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe", padding: "5px 10px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
+                          >
+                            👤 Profil
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -416,6 +422,7 @@ const Utilisateurs = () => {
     </div>
   );
 };
+
 
 const styles = {
   page: {

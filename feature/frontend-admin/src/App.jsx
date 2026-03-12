@@ -13,6 +13,7 @@ import MesTaches from "./pages/Employe/MesTaches";
 import KanbanTaches from "./pages/KanbanTaches"
 import GestionTaches from "./pages/Admin/GestionTaches";
 import CommentairesTache from "./pages/CommentairesTaches";
+import MonProfil from "./pages/MonProfil";
 
 function App() {
   return (
@@ -115,6 +116,20 @@ function App() {
       </ProtectedRoute>
     }
     />
+
+    // Perfil propio del empleado
+<Route path="/profil" element={
+  <ProtectedRoute allowedRoles={["employe", "gestionnaire"]}>
+    <MonProfil />
+  </ProtectedRoute>
+} />
+
+// Perfil de otro usuario (desde Utilisateurs)
+<Route path="/profil/:userId" element={
+  <ProtectedRoute allowedRoles={["gestionnaire"]}>
+    <MonProfil />
+  </ProtectedRoute>
+} />
 
 </Routes> 
   );

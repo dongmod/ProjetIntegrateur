@@ -16,6 +16,7 @@ import paymentRoutes from "./routes/payment.routes.js";
 import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
 import dotenv from 'dotenv'
+import profilsRoutes from './routes/profils.routes.js'
 
 
 // Load env 
@@ -134,7 +135,11 @@ app.use('/api/crenaux',crenauxRoutes)
 app.use("/api/auth", verificationmail);
 app.use('/api/horaires-garage',horairesGaragesRoutes) ///NEW 
 app.use("/api/payment", paymentRoutes)
+
+app.use("/api/genererfacture", genererfactureRoutes);
 app.use('/api/commentaires-taches',commentairesTachesRoutes) //New 
+app.use('/api/profils',profilsRoutes)
+
 //creation mqtt
 const mqttClient = mqtt.connect("mqtt://localhost:1883")
 

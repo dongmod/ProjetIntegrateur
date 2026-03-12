@@ -2,11 +2,15 @@ import e from 'express'
 import supabase from '../config/supabaseClient.js'
 import { io } from "../server.js";
 import { terminerRendezVous } from './rendezvous.controller.js'
+
+
+
 export const createTaches = async (req, res) => {
-  const { niveau_urgence,rendezvous_id,employe_id,poste_id,titre, description, statut,heure_debut,heure_fin } = req.body
+  console.log("BODY RECU POUR CREATION DE TACHE:",req.body)
+  const { niveau_urgence,rendezvous_id,employe_id,poste_id,titre, description, statut, heure_debut, heure_fin} = req.body
 
   // Validation simple
-  if (!titre || !description || !statut|| !heure_debut || !heure_fin) {
+  if (!titre || !description || !statut) {
     return res.status(400).json({
       message: "titre, description, statut, heure_debut et heure_fin sont obligatoires"
     })
@@ -17,18 +21,20 @@ export const createTaches = async (req, res) => {
       .from('taches')
       .insert([
         {
-        rendezvous_id,
-        employe_id,
-        poste_id,
+        rendezvous_id: rendezvous_id || null,
+        employe_id: employe_id || null,
+        poste_id: poste_id || null,
           titre,
           description,
           statut, 
-            heure_debut,
-            heure_fin,
-            niveau_urgence
+            heure_debut: heure_debut || null,
+            heure_fin:heure_fin || null,
+            niveau_urgence: niveau_urgence || "moyenne"
         }
       ])
       .select()
+      console.log("SUBAPASE ERROR",error) //>new 
+      console.log("SUPABASE DATA:",data) ///>new 
 
     if (error) {
       return res.status(400).json({
@@ -38,7 +44,7 @@ export const createTaches = async (req, res) => {
     }
 
     return res.status(201).json({
-      message: "taches créé avec succès",
+      message: "taches créé avec succès", tache:data[0],
       tache: data[0]
     })
 
@@ -52,6 +58,7 @@ export const createTaches = async (req, res) => {
 
 export const getMesTaches = async (req, res) => {
   const userId = req.user.user_id
+  console.log("GET MES TACHES - userId:", userId)
 
   const { data, error } = await supabase
     .from('taches')
@@ -66,6 +73,8 @@ export const getMesTaches = async (req, res) => {
       )
     `)
     .eq('employe_id', userId)
+    console.log("TACHES DATA:", data)   // ← agrega
+    console.log("TACHES ERROR:", error)
 
   if (error) return res.status(400).json(error)
 
@@ -74,11 +83,22 @@ export const getMesTaches = async (req, res) => {
 
 export const updateTache = async (req, res) => {
   const tacheId = req.params.id
-  const { statut, heure_debut, heure_fin } = req.body
+  const { statut, 
+    heure_debut, 
+    heure_fin,
+    titre,
+    description,
+    niveau_urgence,
+    employe_id,
+    poste_id,
+    rendezvous_id } = req.body
 
   const { data, error } = await supabase
     .from('taches')
-    .update({ statut, heure_debut, heure_fin })
+    .update({ statut, heure_debut, heure_fin,titre,description,niveau_urgence,
+      employe_id: employe_id    || null, 
+      poste_id:      poste_id      || null,
+      rendezvous_id: rendezvous_id || null,})
     .eq('id', tacheId)
     .select()
 
