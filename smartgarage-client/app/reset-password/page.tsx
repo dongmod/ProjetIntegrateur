@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/auth/resetMot_de_passe/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/resetMot_de_passe/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

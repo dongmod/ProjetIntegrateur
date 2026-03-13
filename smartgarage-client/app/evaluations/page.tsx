@@ -44,7 +44,7 @@ setUserId(payload.id || payload.user_id)
 
   const chargerGarages = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/garages', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/garages`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -56,7 +56,7 @@ setUserId(payload.id || payload.user_id)
 
   const chargerAvis = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/avis/getavis/${garageId}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/avis/getavis/${garageId}`)
       const data = await response.json()
       setAvis(Array.isArray(data) ? data : [])
     } catch (error) {
@@ -66,7 +66,7 @@ setUserId(payload.id || payload.user_id)
 
   const chargerMoyenne = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/avis/moyenne/${garageId}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/avis/moyenne/${garageId}`)
       const data = await response.json()
       setMoyenne(data.moyenne || 0)
     } catch (error) {
@@ -80,7 +80,7 @@ setUserId(payload.id || payload.user_id)
     setSucces('')
 
     try {
-      const response = await fetch('http://localhost:3000/api/avis/create', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/avis/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -116,7 +116,7 @@ setUserId(payload.id || payload.user_id)
     setErreur('')
 
     try {
-      const response = await fetch(`http://localhost:3000/api/avis/modifieravis/${avisAModifier.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/avis/modifieravis/${avisAModifier.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -142,7 +142,7 @@ setUserId(payload.id || payload.user_id)
 
   const handleSupprimer = async (id: string) => {
     try {
-      await fetch(`http://localhost:3000/api/avis/supprimeravis/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/avis/supprimeravis/${id}`, {
         method: 'DELETE'
       })
       chargerAvis()

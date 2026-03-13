@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { io } from 'socket.io-client'
 
 export default function RendezvousPage() {
   const router = useRouter()
@@ -30,6 +31,25 @@ export default function RendezvousPage() {
       return
     }
     chargerDonnees(token)
+
+    // Socket.IO - écouter les mises à jour en temps réel
+    const socket = io(`${process.env.NEXT_PUBLIC_API_URL}`)
+
+    socket.on('rdv:create', () => {
+      chargerDonnees(token)
+    })
+
+    socket.on('rdv:update', () => {
+      chargerDonnees(token)
+    })
+
+    socket.on('rdv:delete', () => {
+      chargerDonnees(token)
+    })
+
+    return () => {
+      socket.disconnect()
+    }
   }, [])
 
   useEffect(() => {
@@ -44,10 +64,10 @@ export default function RendezvousPage() {
   const chargerDonnees = async (token: string) => {
     try {
       const [rdvRes, vehiculesRes, garagesRes, servicesRes] = await Promise.all([
-        fetch('http://localhost:3000/api/rendezvous', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3000/api/vehicules', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3000/api/garages', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3000/api/services', { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rendezvous`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/garages`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/services`, { headers: { Authorization: `Bearer ${token}` } })
       ])
 
       const [rdvData, vehiculesData, garagesData, servicesData] = await Promise.all([
@@ -68,7 +88,7 @@ export default function RendezvousPage() {
     try {
       const date = dateRendezvous
       const response = await fetch(
-        `http://localhost:3000/api/crenaux?date=${date}&service_id=${serviceId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/crenaux?date=${date}&service_id=${serviceId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
       const data = await response.json()
@@ -99,7 +119,7 @@ export default function RendezvousPage() {
     const dateAvecCreneau = `${dateRendezvous}T${creneauChoisi}:00`
 
     try {
-      const response = await fetch('http://localhost:3000/api/rendezvous', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rendezvous`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +162,7 @@ export default function RendezvousPage() {
     const token = getToken()
 
     try {
-      const response = await fetch(`http://localhost:3000/api/rendezvous/${rdvEdit.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rendezvous/${rdvEdit.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +191,7 @@ export default function RendezvousPage() {
   const handleAnnuler = async (id: string) => {
     const token = getToken()
     try {
-      await fetch(`http://localhost:3000/api/rendezvous/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rendezvous/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })

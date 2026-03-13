@@ -9,13 +9,17 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function notificatiordvtermine(email) {
-  await transporter.sendMail({
-    from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Votre rendez-vous est terminé",
-    html: `
-      <h2>Votre rendez-vous est terminé</h2>
-      <p>Vous êtes priés de venir récupérer votre véhicule.</p>
-    `
-  });
+  try {
+    await transporter.sendMail({
+      from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Votre rendez-vous est terminé",
+      html: `
+        <h2>Votre rendez-vous est terminé</h2>
+        <p>Vous êtes priés de venir récupérer votre véhicule.</p>
+      `
+    });
+  } catch (err) {
+    console.error("Erreur envoi email rendez-vous terminé:", err.message);
+  }
 }

@@ -25,8 +25,8 @@ export default function HistoriquePage() {
   const chargerDonnees = async (token: string) => {
     try {
       const [rdvRes, facturesRes] = await Promise.all([
-        fetch('http://localhost:3000/api/rendezvous', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('http://localhost:3000/api/factures', { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rendezvous`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/factures`, { headers: { Authorization: `Bearer ${token}` } })
       ])
       const [rdvData, facturesData] = await Promise.all([
         rdvRes.json(), facturesRes.json()
@@ -41,7 +41,7 @@ export default function HistoriquePage() {
   const handleTelechargerFacture = async (factureId: string) => {
     const token = getToken()
     try {
-      const response = await fetch(`http://localhost:3000/api/genererfacture/${factureId}/download`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/genererfacture/${factureId}/download`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const blob = await response.blob()
@@ -125,7 +125,7 @@ export default function HistoriquePage() {
                       <p className="text-gray-400">Date: {new Date(rdv.date_rendezvous).toLocaleDateString('fr-CA')}</p>
                       <p className="text-gray-400">Statut: <span className={rdv.statut === 'termine' ? 'text-green-400' : 'text-yellow-400'}>{rdv.statut}</span></p>
                       {rdv.vehicules && <p className="text-gray-400">Véhicule: {rdv.vehicules.marque} {rdv.vehicules.modele}</p>}
-                      {facture && <p className="text-gray-400">Montant: <span className="text-white font-semibold">{(facture as any).montant_total} $</span></p>}
+                     {facture && <p className="text-gray-400">Montant: <span className="text-white font-semibold">{(facture as any).total} $</span></p>}
                     </div>
                     {facture && (
                       <button
