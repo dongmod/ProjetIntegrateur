@@ -336,7 +336,7 @@ const Dashboard = () => {
               <ul className="menu-list">
                 <li className="menu-item" onClick={() => goTo("/dashboard")}>🏠 Tableau de bord</li>
                 <li className="menu-item" onClick={() => goTo("/rendez-vous")}>📅 Rendez-vous</li>
-                <li className="menu-item" onClick={() => goTo("/crenaux")}>🕐 Créneaux</li>
+                <li className="menu-item" onClick={() => goTo("/creneaux")}>🕐 Créneaux</li>
                 <li className="menu-item" onClick={() => goTo("/gestion-taches")}>✅ Tâches</li>
                 <li className="menu-item" onClick={() => goTo("/kanban")}>📊 Kanban</li>
                 <li className="menu-item" onClick={() => goTo("/utilisateurs")}>👥 Utilisateurs</li>
@@ -391,7 +391,7 @@ const Dashboard = () => {
               <button className="action-btn" onClick={() => goTo("/rendez-vous")}>📅 Nouveau rendez-vous</button>
               <button className="action-btn" onClick={() => goTo("/gestion-taches")}>✅ Créer une tâche</button>
               <button className="action-btn" onClick={() => goTo("/utilisateurs")}>👥 Gérer utilisateurs</button>
-              <button className="action-btn" onClick={() => goTo("/crenaux")}>🕐 Gérer créneaux</button>
+              <button className="action-btn" onClick={() => goTo("/creneaux")}>🕐 Gérer créneaux</button>
               <button className="action-btn" onClick={() => goTo("/kanban")}>📊 Vue Kanban</button>
               <button className="action-btn" onClick={() => goTo("/services")}>🛠️ Modifier services</button>
             </div>

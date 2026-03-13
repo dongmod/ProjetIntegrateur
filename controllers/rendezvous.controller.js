@@ -11,13 +11,6 @@ import { notificatiordvtermine } from '../utils/notificatiordvtermine.js';
 
 
 
-
-
-
-
-
-
-
 export const createRendezVous = async (req, res) => {
   const userId = req.user.user_id // modification pour user_id 
 
@@ -401,24 +394,32 @@ function heuresSeSuperposent(debut1, fin1, debut2, fin2) {
 }
 
 ////// NOUVEAU FONCTION pour gestionnaire assigner les rendez-vous a employes 
-export const assignerRendezVous = async (req,res) => {
-  const rdvId=req.params.id 
-  const {employe_id, 
-    poste_travail_id,
-    date_rendezvous} = req.body
-  console.log("ASSIGNER RDV - body:", req.body)  // ← Nouveau pour verifier si le rdv est modiffie 
-  console.log("ASSIGNER RDV - id:", rdvId) 
-  
-  const {data,error} =await supabase 
-    .from('rendez_vous')
-    .update({employe_id, poste_travail_id,date_rendezvous})
-    .eq('id,rdvId')
-    .select()
-  console.log("ASSIGNER ERROR:", error)  // ← New 
-  console.log("ASSIGNER DATA:", data)    // ← New 
+export const assignerRendezVous = async (req, res) => {
+  const rdvId = req.params.id
+  const { employe_id, poste_travail_id, date_rendezvous, statut } = req.body
+  console.log("ASSIGNER RDV - body:", req.body)
+  console.log("ASSIGNER RDV - id:", rdvId)
 
-    if (error) return res.status(400).json(error)
-      res.json(data[0])
+  const { data, error } = await supabase
+    .from('rendez_vous')
+    .update({
+      rendezvous_id,
+      employe_id,
+      poste_travail_id,
+      date_rendezvous,
+      rendezvous_id,
+      heureDebut,
+      heureFi,
+      statut,
+    })
+    .eq('id', rdvId)
+    .select()
+
+  console.log("ASSIGNER ERROR:", error)
+  console.log("ASSIGNER DATA:", data)
+
+  if (error) return res.status(400).json(error)
+  res.json(data[0])
 }
 
 

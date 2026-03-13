@@ -14,15 +14,12 @@ import {
 import { verifyToken } from '../middleware/authMiddleware.js'
 import upload from '../middleware/multer_images.js'
 
-router.get('/me', verifyToken, me)
-router.post('/register', register)
-
 const router = express.Router()
 
-router.post('/register', upload.single('photos'), register)   //profil
-router.patch('/profil/:id', upload.single('photos'), updateProfil) //profil 
+router.post('/register', upload.single('photos'), register)
 router.post('/login', login)
-router.patch('/profil/:id', updateProfil)
+router.get('/me', verifyToken, me)
+router.patch('/profil/:id', upload.single('photos'), updateProfil)
 router.delete('/deleteUser/:id', deleteUser)
 router.put('/updateUser/:id', updateUser)
 router.put('/resetMot_de_passe/:id', resetMot_de_passe)
@@ -31,6 +28,6 @@ router.get('/getUser', getUser)
 router.get('/getUserbyId/:id', getUserbyId)
 router.get('/test', (req, res) => res.json({ ok: true }))
 
+console.log("Auth routes loaded")
 
-console.log("Auth routes loaded") 
 export default router

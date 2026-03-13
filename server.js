@@ -17,7 +17,6 @@ import paymentRoutes from "./routes/payment.routes.js";
 import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
 
-
 import { initSocket } from "./websocket/socket.js";
 import dotenv from 'dotenv'
 import profilsRoutes from './routes/profils.routes.js'
@@ -182,52 +181,32 @@ app.post("/api/vin", (req, res) => {
 
 
 //START SERVER
+// const httpServer = http.createServer(app);
+// export const io = new Server(httpServer, {
+//     cors: {
+//     origin: "*",
+//     methods: ["GET", "POST", "PATCH", "DELETE","PUT","OPTIONS"]
+//     }
+// });
+
+// io.on("connection", (socket) => {
+//     console.log("Nouvelle connexion socket:", socket.id)
+
+//     socket.on("disconnect", () => {
+//     console.log("Socket déconnecté:", socket.id)
+//     })
+// })
+
+// ✅ DESPUÉS — usar initSocket() para que getIO() funcione NOUVEAU 
 const httpServer = http.createServer(app);
-export const io = new Server(httpServer, {
-    cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PATCH", "DELETE","PUT","OPTIONS"]
-    }
-});
+const io = initSocket(httpServer);  // ← esto inicializa la variable en websocket/socket.js
 
-io.on("connection", (socket) => {
-    console.log("Nouvelle connexion socket:", socket.id)
-
-    socket.on("disconnect", () => {
-    console.log("Socket déconnecté:", socket.id)
-    })
-})
 
 // server.listen(process.env.PORT, () => {
 httpServer.listen(process.env.PORT, () => {
     console.log(`Serveur lancé sur le port ${process.env.PORT}`)
     console.log("SECRET:", process.env.JWT_SECRET)
-
 })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-// Création du serveur HTTP
-const server = http.createServer(app);
-// Initialisation Socket.IO
-initSocket(server);
-
-
-
-server.listen(process.env.PORT, () => {
-console.log(`Serveur lancé sur le port ${process.env.PORT}`);
-//console.log("SECRET:", process.env.JWT_SECRET)
-
-});
 

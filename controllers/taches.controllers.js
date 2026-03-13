@@ -1,6 +1,5 @@
 import e from 'express'
 import supabase from '../config/supabaseClient.js'
-
 import { getIO } from "../websocket/socket.js";
 import { terminerRendezVous } from './rendezvous.controller.js'
 
@@ -22,14 +21,14 @@ export const createTaches = async (req, res) => {
       .from('taches')
       .insert([
         {
-        rendezvous_id: rendezvous_id || null,
-        employe_id: employe_id || null,
-        poste_id: poste_id || null,
+        rendezvous_id,
+        employe_id,
+        poste_id,
           titre,
           description,
           statut, 
-            heure_debut: heure_debut || null,
-            heure_fin:heure_fin || null,
+            heure_debut,
+            heure_fin,
             niveau_urgence: niveau_urgence || "moyenne"
         }
       ])
@@ -186,6 +185,7 @@ export const terminertaches = async (req, res) => {
     if (updateError) {
       return res.status(500).json({ message: "Erreur lors de la mise à jour du statut de la tâche" });
     }
+
 //trouver id du rendez-vous lié à la tâche pour terminer le rendez-vous
 console.log(".....////////////////////////////...ID reçu :", id);
     const { data: tacheData, error: tacheError } = await supabase
@@ -230,14 +230,12 @@ console.log(".....////////////////////////////...ID reçu :", id);
      }
 
 
-        //terminerRendezVous(tacheData.rendezvous_id,commentaires)
+        //terminerRendezVous(tacheData.rendezvous_id,commentaires) TERMINER -TACHE 
 await terminerRendezVous(tacheData.rendezvous_id) // Appeler la fonction de logique métier directement
   //console.log(" Rendez-vous associé à la tâche terminé :", commentaires)
 return res.status(200).json({
   message: "Tâche terminée et rendez-vous traité"
 })
-
-
 
 } catch (err) {
     console.log("ERREUR SERVEUR:", err);

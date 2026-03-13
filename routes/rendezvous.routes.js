@@ -1,7 +1,7 @@
 import express from 'express'
 
 import { createRendezVous,updateRendezVous, getMesRendezVous,
-  deleteRendezVous,getAllRendezVous, assignerRendezVous,
+  deleteRendezVous,getAllRendezVous, assignerRendezVous,RendezVousAll,
   getCreaneauxDisponibles} from '../controllers/rendezvous.controller.js'
 
 // import { createRendezVous,updateRendezVous, getMesRendezVous, RendezVousAll,

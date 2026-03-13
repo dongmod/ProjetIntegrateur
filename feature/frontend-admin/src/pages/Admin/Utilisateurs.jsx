@@ -1,5 +1,4 @@
-// Page Utilisateurs 
-
+//PAGE UTILISATEURS 
 import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
@@ -20,15 +19,15 @@ const initialForm = {
 const Utilisateurs = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [profils, setProfils] = useState({});
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState("create"); // "create" | "edit"
+  const [modalMode, setModalMode] = useState("create");
   const [selectedUser, setSelectedUser] = useState(null);
   const [form, setForm] = useState(initialForm);
   const [formError, setFormError] = useState("");
@@ -52,6 +51,24 @@ const Utilisateurs = () => {
     fetchUsers();
   }, []);
 
+  const fetchProfils = async (users) => {
+    const profilsMap = {};
+    await Promise.all(
+      users.map(async (u) => {
+        try {
+          const res = await fetch(`${API_URL}/api/profils/${u.user_id}`, {
+            headers: authHeaders,
+          });
+          if (res.ok) {
+            const p = await res.json();
+            if (p?.photo_url) profilsMap[u.user_id] = p.photo_url;
+          }
+        } catch {}
+      })
+    );
+    setProfils(profilsMap);
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
     setError("");
@@ -62,6 +79,7 @@ const Utilisateurs = () => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setUsers(data);
+      fetchProfils(data);
     } catch (err) {
       setError("Impossible de charger les utilisateurs.");
     } finally {
@@ -205,6 +223,28 @@ const Utilisateurs = () => {
     navigate("/", { replace: true });
   };
 
+  const Avatar = ({ user }) => {
+    const photo = profils[user.user_id];
+    const initiales = `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase();
+    return photo ? (
+      <img
+        src={photo}
+        alt="avatar"
+        style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid #e5e7eb" }}
+      />
+    ) : (
+      <div style={{
+        width: 38, height: 38, borderRadius: "50%",
+        background: "linear-gradient(135deg, #2563eb, #7c3aed)",
+        color: "#fff", display: "flex", alignItems: "center",
+        justifyContent: "center", fontSize: 13, fontWeight: 800,
+        flexShrink: 0,
+      }}>
+        {initiales}
+      </div>
+    );
+  };
+
   return (
     <div style={styles.page}>
       <Header
@@ -222,7 +262,7 @@ const Utilisateurs = () => {
                 {[
                   { icon: "🏠", label: "Tableau de bord", path: "/dashboard" },
                   { icon: "📅", label: "Rendez-vous", path: "/rendez-vous" },
-                  { icon: "✅", label: "Gestion des tâches", path: "/taches" },
+                  { icon: "✅", label: "Gestion des tâches", path: "/gestion-taches" },
                   { icon: "👥", label: "Utilisateurs", path: "/utilisateurs" },
                   { icon: "🛠️", label: "Services", path: "/services" },
                   { icon: "🚗", label: "Véhicules", path: "/vehicules" },
@@ -247,7 +287,6 @@ const Utilisateurs = () => {
 
         {/* Main */}
         <main style={styles.main}>
-          {/* Header row */}
           <div style={styles.pageHeader}>
             <div>
               <h1 style={styles.pageTitle}>👥 Gestion des employés</h1>
@@ -258,11 +297,9 @@ const Utilisateurs = () => {
             </button>
           </div>
 
-          {/* Alerts */}
           {error && <div style={styles.alertError}>{error}</div>}
           {success && <div style={styles.alertSuccess}>{success}</div>}
 
-          {/* Search + count */}
           <div style={styles.toolbar}>
             <input
               style={styles.searchInput}
@@ -270,10 +307,11 @@ const Utilisateurs = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <span style={styles.count}>{filtered.length} utilisateur{filtered.length !== 1 ? "s" : ""}</span>
+            <span style={styles.count}>
+              {filtered.length} utilisateur{filtered.length !== 1 ? "s" : ""}
+            </span>
           </div>
 
-          {/* Table */}
           {loading ? (
             <p style={{ padding: 20, color: "#6b7280" }}>Chargement...</p>
           ) : (
@@ -281,7 +319,7 @@ const Utilisateurs = () => {
               <table style={styles.table}>
                 <thead>
                   <tr>
-                    {["Nom", "Prénom", "Email", "Rôle", "Actions"].map((h) => (
+                    {["Photo", "Nom", "Prénom", "Email", "Rôle", "Actions"].map((h) => (
                       <th key={h} style={styles.th}>{h}</th>
                     ))}
                   </tr>
@@ -289,13 +327,16 @@ const Utilisateurs = () => {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ padding: 24, textAlign: "center", color: "#9ca3af" }}>
+                      <td colSpan={6} style={{ padding: 24, textAlign: "center", color: "#9ca3af" }}>
                         Aucun utilisateur trouvé.
                       </td>
                     </tr>
                   ) : (
                     filtered.map((user) => (
                       <tr key={user.user_id} style={styles.tr}>
+                        <td style={{ ...styles.td, width: 56 }}>
+                          <Avatar user={user} />
+                        </td>
                         <td style={styles.td}>{user.nom}</td>
                         <td style={styles.td}>{user.prenom}</td>
                         <td style={styles.td}>{user.email}</td>
@@ -305,11 +346,15 @@ const Utilisateurs = () => {
                           </span>
                         </td>
                         <td style={styles.td}>
-                          <button style={styles.editBtn} onClick={() => openEdit(user)}>✏️ Éditer</button>
-                          <button style={styles.deleteBtn} onClick={() => setDeleteTarget(user)}>🗑️ Supprimer</button>
+                          <button style={styles.editBtn} onClick={() => openEdit(user)}>
+                            ✏️ Éditer
+                          </button>
+                          <button style={styles.deleteBtn} onClick={() => setDeleteTarget(user)}>
+                            🗑️ Supprimer
+                          </button>
                           <button
+                            style={styles.profilBtn}
                             onClick={() => navigate(`/profil/${user.user_id}`)}
-                            style={{ background: "#eff6ff", color: "#1e40af", border: "1px solid #bfdbfe", padding: "5px 10px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}
                           >
                             👤 Profil
                           </button>
@@ -407,7 +452,8 @@ const Utilisateurs = () => {
           <div style={{ ...styles.modal, maxWidth: 400 }}>
             <h2 style={{ ...styles.modalTitle, color: "#dc2626" }}>🗑️ Confirmer la suppression</h2>
             <p style={{ color: "#374151", marginBottom: 24 }}>
-              Voulez-vous vraiment supprimer <strong>{deleteTarget.prenom} {deleteTarget.nom}</strong> ?
+              Voulez-vous vraiment supprimer{" "}
+              <strong>{deleteTarget.prenom} {deleteTarget.nom}</strong> ?
               Cette action est irréversible.
             </p>
             <div style={styles.modalActions}>
@@ -422,7 +468,6 @@ const Utilisateurs = () => {
     </div>
   );
 };
-
 
 const styles = {
   page: {
@@ -512,7 +557,7 @@ const styles = {
     border: "1px solid #e5e7eb",
     overflowX: "auto",
   },
-  table: { width: "100%", borderCollapse: "collapse", minWidth: 600 },
+  table: { width: "100%", borderCollapse: "collapse", minWidth: 650 },
   th: {
     textAlign: "left",
     padding: "12px 14px",
@@ -525,7 +570,7 @@ const styles = {
   },
   tr: { transition: "background 0.15s" },
   td: {
-    padding: "12px 14px",
+    padding: "10px 14px",
     borderBottom: "1px solid #f3f4f6",
     fontSize: 14,
     verticalAlign: "middle",
@@ -552,6 +597,17 @@ const styles = {
     background: "#fef2f2",
     color: "#dc2626",
     border: "1px solid #fecaca",
+    padding: "5px 10px",
+    borderRadius: 6,
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 600,
+    marginRight: 6,
+  },
+  profilBtn: {
+    background: "#eff6ff",
+    color: "#1e40af",
+    border: "1px solid #bfdbfe",
     padding: "5px 10px",
     borderRadius: 6,
     cursor: "pointer",
