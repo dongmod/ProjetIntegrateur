@@ -1,6 +1,6 @@
 // src/utils/email.js
 import nodemailer from "nodemailer";
-import { success } from "zod";
+//import { success } from "zod";
 
 // -----Creation du transporteur ---- 
 const transporter = nodemailer.createTransport({
@@ -95,7 +95,7 @@ export async function sendVerificationEmail(email, verificationToken) {
 
             <div style="text-align: center; margin: 30px 0;">
               <a href="${verificationUrl}" 
-                 style="background-color: #4CAF50; 
+                style="background-color: #4CAF50; 
                         color: white; 
                         padding: 15px 30px; 
                         text-decoration: none; 
@@ -157,4 +157,8 @@ export async function sendRappelEmail(email, { nom, typeService, date, heure }) 
   });
 
   return result;
-}
+// }catch (err) {
+//     console.error("Erreur envoi email confirmation:", err.message);
+  }
+
+// }

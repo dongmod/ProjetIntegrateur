@@ -1,5 +1,5 @@
 import supabase from '../config/supabaseClient.js';
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
 import {sendEmail} from "./email.js" //<=== New 
 
 // const transporter = nodemailer.createTransport({
@@ -11,7 +11,6 @@ import {sendEmail} from "./email.js" //<=== New
 // });
 
 export async function maintenacenitifEmail(user, type_service) {
-
     // retrouver l'email du client dans la table utilisateurs
     const { data: client } = await supabase
       .from("utilisateurs")
@@ -23,14 +22,14 @@ export async function maintenacenitifEmail(user, type_service) {
     return;
   }
 
- if (!client.email) {
+  if (!client.email) {
     console.error(` L'utilisateur ${user} n'a pas d'email enregistré`);
     return;
   }
 
 // sendEmail gere les erreurs, plus de crash 
-
-return await sendEmail({ 
+try {
+  await transporter.sendMail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: client.email,
     subject: "Rendez-vous de maintenance à venir",
@@ -39,4 +38,7 @@ return await sendEmail({
       <p>Votre rendez-vous pour le service <strong>${type_service}</strong> est a venir. Pensez y ! </p>
     `
   });
+}catch (err) {
+    console.error("Erreur envoi email maintenance:", err.message);
+  }
 }

@@ -30,8 +30,8 @@ if (!client.email) {
     return;
   }
 
-
-return await sendEmail({  
+try {
+  await sendEmail({  
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: client.email,
     subject: "Rappel de votre rendez-vous",
@@ -40,4 +40,7 @@ return await sendEmail({
       <p>Votre rendez-vous pour le service <strong>${type_service}</strong> de votre ${vehicule_marque} (${vehicule_plaque}) est pour demain. Pensez-y ! </p>
     `
   });
+}catch (err) {
+    console.error("Erreur envoi email rappel:", err.message);
+  }
 }

@@ -136,11 +136,12 @@ export const moyenneGarage = async (req, res) => {
     .select("note")
     .eq("garage_id", garageId)
 
-  const moyenne =
-    data.reduce((sum, a) => sum + a.note, 0) / data.length
+  const moyenne = data && data.length > 0
+    ? data.reduce((sum, a) => sum + a.note, 0) / data.length
+    : 0
 
   res.json({
     moyenne: moyenne || 0,
-    totalAvis: data.length
+    totalAvis: data ? data.length : 0
   })
 }

@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+// import nodemailer from "nodemailer";
 import {sendEmail} from "./email.js"; 
 
 // const transporter = nodemailer.createTransport({
@@ -11,7 +11,10 @@ import {sendEmail} from "./email.js";
 
 export async function notificatiordvtermine(email) {
   //sendEmail gere les erreurs plus de crash 
-return await sendEmail({ 
+// return await sendEmail({ 
+try {
+  // 
+  await sendEmail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Votre rendez-vous est terminé",
@@ -20,4 +23,7 @@ return await sendEmail({
       <p>Vous êtes priés de venir récupérer votre véhicule.</p>
     `
   });
+}catch (err) {
+    console.error("Erreur envoi email rendez-vous terminé:", err.message);
+  }
 }

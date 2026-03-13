@@ -1,7 +1,7 @@
 
 import mqtt from "mqtt"
 import supabase from "../config/supabaseClient.js"
-
+import { debutreparation } from '../utils/notif_debut_reparation.js';
 // ---------------- LOGGING ----------------
 const log = {
   info: (...msg) => console.log("[INFO]", ...msg),
@@ -121,8 +121,16 @@ client.on("message", async (topic, message) => {
         if (vehiculeError || !vehicule) {
           log.info(" Véhicule non trouvé en DB:")
         }
-
-          //  Trouver le vehicule associé au rendezvous en cours pour ce poste
+       //trouver le client associé au vehicule pour envoyer la notification
+        const { data: clientnotif, error: clientError } = await supabase
+          .from("utilisateurs")
+          .select("email")
+          .eq("user_id", vehicule.client_id)
+          .single()
+        if (clientError || !clientnotif) {
+          log.info(" Client non trouvé en DB:")
+        }
+        //  Trouver le vehicule associé au rendezvous en cours pour ce poste
         const { data: rendezvous, error: rendezvousError } = await supabase
           .from("rendez_vous")
           .select("id,vehicule_id,statut")
@@ -152,6 +160,8 @@ client.on("message", async (topic, message) => {
           .select("*")
           .eq("rendezvous_id", rendezvous.id)
           .single()
+          await debutreparation(clientnotif.email, vehicule.plaque) // Appeler la fonction de logique métier directement
+          log.info(" Notification de début de réparation envoyée au client :", vehicule.plaque)
     log.info(" .........................Tâche trouvée en DB :", tache)
         if (tacheError || !tache) {
           log.info(" Tâche non trouvée pour ce rendez-vous :", rendezvous.id)

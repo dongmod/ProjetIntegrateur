@@ -41,15 +41,12 @@ router.post("/creatiopayment", verifyToken, async (req, res) => {
             product_data: {
               name: "Paiement service garage",
             },
-            unit_amount: amount ,//* 100, // Stripe = cents
+            unit_amount: amount * 100, // Stripe = cents
           },
           quantity: 1,
         },
       ],
 
-
-
-      
       success_url: "http://localhost:3000/success",
       cancel_url: "http://localhost:3000/cancel",
       //retrouver  rendesvous_id dans factures

@@ -14,6 +14,7 @@ import KanbanTaches from "./pages/KanbanTaches"
 import GestionTaches from "./pages/Admin/GestionTaches";
 import CommentairesTache from "./pages/CommentairesTaches";
 import MonProfil from "./pages/MonProfil";
+import Vehicules from "./pages/Admin/Vehicules";
 
 function App() {
   return (
@@ -130,6 +131,13 @@ function App() {
     <MonProfil />
   </ProtectedRoute>
 } />
+
+<Route path="/vehicules"element ={
+  <ProtectedRoute allowedRoles={["gestionnaire"]}>
+    <Vehicules />
+  </ProtectedRoute>
+} />
+
 
 </Routes> 
   );

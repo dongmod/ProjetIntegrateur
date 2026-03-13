@@ -103,7 +103,9 @@ app.post("/api/payment/webhook",
       const session = event.data.object
 
       const factureid = session.metadata.id
-        const client_a_notifier = session.metadata.user_email
+      const client_a_notifier = session.metadata.user_email
+    console.log("Session de paiement réussie pour la facture ID:", factureid, "Client à notifier:", client_a_notifier)
+
       await supabase
         .from("factures")
         .update({ statut: "payee" })
