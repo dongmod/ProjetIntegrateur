@@ -67,7 +67,8 @@ if (file) {
     .insert([
       { nom, prenom, email,
          mot_de_passe: hashedmot_de_passe, 
-         role, photos: imageUrl ? [imageUrl] : null }
+         role, 
+         photos: imageUrl ? [imageUrl] : null }
     ])
     .select()
 

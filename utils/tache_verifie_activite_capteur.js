@@ -5,7 +5,7 @@ import  { verifierCapteursInactifs } from "./regle_capteur_inactif.js";
 console.log("Lancement initial de la vérification des capteurs inactifs...");
 verifierCapteursInactifs();
 
-cron.schedule("* * * * *", () => {
+cron.schedule("0 8 * * *", () => {
   console.log("Vérification automatique de l'activité des capteurs...");
   verifierCapteursInactifs();
 });

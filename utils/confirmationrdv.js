@@ -9,6 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function confirmationEmail(email, type_service, date_rendezvous) {
+try {
   await transporter.sendMail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -19,4 +20,7 @@ export async function confirmationEmail(email, type_service, date_rendezvous) {
       <p>Date : <strong>${date_rendezvous}</strong></p>
     `
   });
+}catch (err) {
+    console.error("Erreur envoi email confirmation:", err.message);
+  }
 }

@@ -42,7 +42,7 @@ client.on("connect", () => {
 
     const payloadVin = { 
       sensor_id: SENSORVIN_ID,
-      vin: "LOK-251",
+      vin: "2000",
       type: "lecteur_vin",
       timestamp: new Date().toISOString()
 

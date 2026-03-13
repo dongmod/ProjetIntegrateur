@@ -41,7 +41,7 @@ for (const capteur of capteurs) {
       );
 
       // ---------------- EMAIL ----------------
-     mailcapteurinactif("stephanie.vasquez1516@gmail.com", capteur.identifiant_materiel);
+     mailcapteurinactif("mariusdogmo@gmail.com", capteur.identifiant_materiel);
       log.warn(`Email d'alerte envoyé pour capteur ${capteur.identifiant_materiel}`);
 
 

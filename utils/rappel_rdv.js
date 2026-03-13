@@ -27,7 +27,7 @@ export async function rappelrdv(vehicule_marque, vehicule_plaque, type_service, 
     console.error(` L'utilisateur ${user} n'a pas d'email enregistré`);
     return;
   }
-
+try {
   await transporter.sendMail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: client.email,
@@ -37,4 +37,7 @@ export async function rappelrdv(vehicule_marque, vehicule_plaque, type_service, 
       <p>Votre rendez-vous pour le service <strong>${type_service}</strong> de votre ${vehicule_marque} (${vehicule_plaque}) est pour demain. Pensez y</p>
     `
   });
+}catch (err) {
+    console.error("Erreur envoi email rappel:", err.message);
+  }
 }

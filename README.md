@@ -195,3 +195,15 @@ Clique Create bucket
 
 Nom :
 choisir public
+
+
+
+pour executer ngrok,     
+
+faites    .\ngrok http 3000
+
+
+puis copier  https://hydroptic-unimpeding-julissa.ngrok-free.dev 
+
+et coller dans email.js  pour confirmer les mail
+
