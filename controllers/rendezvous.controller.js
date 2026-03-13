@@ -193,11 +193,11 @@ export const deleteRendezVous = async (req, res) => {
 
 
    //recuperer la date du rendez-vous pour la notification
-   const { data: rdv, error: rdvError1 } = await supabase
-   .from('rendez_vous')
-   .select('date_rendezvous')
-   .eq('id', rdvId)
-   .single()
+  const { data: rdv, error: rdvError1 } = await supabase
+  .from('rendez_vous')
+  .select('date_rendezvous')
+  .eq('id', rdvId)
+  .single()
     if (rdvError1 || !rdv) {
       return res.status(404).json({ message: "Rendez-vous introuvable" })
     }
@@ -255,10 +255,10 @@ export const updateRendezVous = async (req, res) => {
 
 
 const { data: rdvupdate } = await supabase 
-   .from('rendez_vous')
-   .select('date_rendezvous')
-   .eq('id', rdvId)
-   .single()
+  .from('rendez_vous')
+  .select('date_rendezvous')
+  .eq('id', rdvId)
+  .single()
     if ( !rdvupdate) {
       return res.status(404).json({ message: "Rendez-vous introuvable" })
     }
@@ -284,7 +284,7 @@ emitRdvUpdate(rdvId, data[0]);
 }
 
 
-/// NOUVEAU -- Chercher de craneaux dispo pour un service donne 
+/// NOUVEAU -- Chercher de craneaux dispo pour un service donne ***
 export const getCreaneauxDisponibles = async (req,res) => {
   const {garage_id,id,date_debut, date_fin} = req.query 
 
@@ -403,13 +403,9 @@ export const assignerRendezVous = async (req, res) => {
   const { data, error } = await supabase
     .from('rendez_vous')
     .update({
-      rendezvous_id,
-      employe_id,
-      poste_travail_id,
+      employe_id: employe_id ||null,
+      poste_travail_id: poste_travail_id ||null,
       date_rendezvous,
-      rendezvous_id,
-      heureDebut,
-      heureFi,
       statut,
     })
     .eq('id', rdvId)

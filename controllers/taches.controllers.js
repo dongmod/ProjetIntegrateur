@@ -237,7 +237,6 @@ return res.status(200).json({
 
 
 //////terminer rendez-vous et tache
-
 export const terminertaches = async (req, res) => {
   const id = req.params.id
   try {

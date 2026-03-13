@@ -8,11 +8,12 @@ const router = express.Router()
 console.log("taches creer")
 // tachesRoutes.js
 router.get('/all',verifyToken,getAllTaches) //Nouveau 
-router.post('/', createTaches)
-router.get('/', verifyToken, getMesTaches)
-router.put('/:id', verifyToken, updateTache)
-router.delete('/:id', verifyToken, deleteTache)
+router.post('/', createTaches) //** 
+router.get('/', verifyToken, getMesTaches) //**  
 router.post('/commencer/:id', verifyToken, commencertaches)
 router.post('/terminer/:id', verifyToken, terminertaches)
+router.put('/:id', verifyToken, updateTache)
+router.delete('/:id', verifyToken, deleteTache)
+// router.post('/:id/verifier-vin', verifyToken, verifierVin) 
 
 export default router
