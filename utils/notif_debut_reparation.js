@@ -9,10 +9,10 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-export async function maintenacenitifEmail(user, type_service) {
+export async function debutreparation(email, vin) {
 
     // retrouver l'email du client dans la table utilisateurs
-    const { data: client } = await supabase
+   /* const { data: client } = await supabase
       .from("utilisateurs")
       .select("email")
       .eq("user_id", user)
@@ -25,15 +25,15 @@ export async function maintenacenitifEmail(user, type_service) {
  if (!client.email) {
     console.error(` L'utilisateur ${user} n'a pas d'email enregistré`);
     return;
-  }
+  }*/
 try {
   await transporter.sendMail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
-    to: client.email,
-    subject: "Rendez-vous de maintenance à venir",
+    to: email,
+    subject: "Debut de réparation",
     html: `
-      <h2>Rendez-vous de maintenance à venir</h2>
-      <p>Votre rendez-vous pour le service <strong>${type_service}</strong> est a venir. Pensez y</p>
+      <h2> Début de réparation</h2>
+      <p>Votre véhicule <strong>${vin}</strong> est en cours de réparation.</p>
     `
   });
 }catch (err) {

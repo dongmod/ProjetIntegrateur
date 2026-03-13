@@ -6,7 +6,7 @@ export const verifyToken = (req, res, next) => {
 
 
   console.log("TOKEN RECU DANS LE MIDDLEWARE AUTH =", token) //connecté au backend, token reçu dans le middleware auth =
-console.log("JWT_SECRET DANS LE MIDDLEWARE AUTH =", process.env.JWT_SECRET) //vérifier que la variable d'environnement est bien accessible dans le middleware auth
+//console.log("JWT_SECRET DANS LE MIDDLEWARE AUTH =", process.env.JWT_SECRET) //vérifier que la variable d'environnement est bien accessible dans le middleware auth
   if (!token) return res.status(401).json({ message: 'No token' })
 
   try {

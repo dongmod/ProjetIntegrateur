@@ -10,6 +10,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendVerificationEmail(email, verificationToken) {
+try { 
   await transporter.sendMail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -21,4 +22,7 @@ export async function sendVerificationEmail(email, verificationToken) {
       </a>
     `
   });
+}catch (err) {
+    console.error("Erreur envoi email confirmation:", err.message);
+  }
 }

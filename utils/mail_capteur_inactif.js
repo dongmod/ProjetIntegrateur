@@ -9,6 +9,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function mailcapteurinactif(email, capteur) {
+try {
   await transporter.sendMail({
     from: `"Smart Garage" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -19,4 +20,7 @@ export async function mailcapteurinactif(email, capteur) {
       <p>identifiant : <strong>${capteur}</strong></p>
     `
   });
+}catch (err) {
+    console.error("Erreur envoi email capteur inactif:", err.message);
+  }
 }

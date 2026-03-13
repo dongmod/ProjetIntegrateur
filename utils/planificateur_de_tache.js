@@ -5,7 +5,7 @@ import { verifierMaintenance } from "./regle_de_maintenance.js";
 console.log("Lancement initial de la vérification des maintenances date le fichier de planification...");
 verifierMaintenance();
 
-cron.schedule("0 * * * *", () => {
+cron.schedule("0 8 * * *", () => {
   console.log("Vérification automatique des maintenances...");
   verifierMaintenance();
 });
