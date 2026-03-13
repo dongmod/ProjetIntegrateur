@@ -53,6 +53,7 @@ const handleSubmit = async (e) => {
 
     localStorage.setItem("token", data.token);
 
+
     // Test de connexion à l'API backend pour récupérer le profil utilisateur
     const response2 = await fetch("http://localhost:3001/api/auth/me", {
       method: "GET",
@@ -70,6 +71,7 @@ const handleSubmit = async (e) => {
     const role = payload?.role || payload?.user?.role || payload?.data?.role;
     console.log("ROLE:", role);
 
+    localStorage.setItem("role",role);  //new 
     // Rediriger selon le rôle
     if (role === "gestionnaire") return navigate("/dashboard");
     if (role === "employe") return navigate("/dashboard-employe");

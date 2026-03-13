@@ -15,6 +15,7 @@ import GestionTaches from "./pages/Admin/GestionTaches";
 import CommentairesTache from "./pages/CommentairesTaches";
 import MonProfil from "./pages/MonProfil";
 import Vehicules from "./pages/Admin/Vehicules";
+import Services from "./pages/Admin/Services";
 
 function App() {
   return (
@@ -138,6 +139,11 @@ function App() {
   </ProtectedRoute>
 } />
 
+<Route path="/services"element ={
+  <ProtectedRoute allowedRoles={["gestionnaire"]}>
+    <Services />
+  </ProtectedRoute>
+} />
 
 </Routes> 
   );
