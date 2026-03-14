@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -11,6 +10,11 @@ export default function ProfilPage() {
   const [erreur, setErreur] = useState('')
   const [succes, setSucces] = useState('')
   const [userId, setUserId] = useState('')
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState('')
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -18,12 +22,11 @@ export default function ProfilPage() {
       router.push('/login')
       return
     }
-    // Décoder le token pour obtenir l'id
     const payload = JSON.parse(atob(token.split('.')[1]))
-    setUserId(payload.id)
+    const id = payload.user_id || payload.id
+    setUserId(id)
 
-    // Charger les infos de l'utilisateur
-    fetch(`http://localhost:3000/api/auth/getUserbyId/${payload.id}`, {
+    fetch(`${API_URL}/api/auth/getUserbyId/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -32,33 +35,72 @@ export default function ProfilPage() {
           setNom(data[0].nom || '')
           setPrenom(data[0].prenom || '')
           setEmail(data[0].email || '')
+          // photos est un tableau dans Supabase
+          const photos = data[0].photos
+          if (Array.isArray(photos) && photos.length > 0) {
+            setPhotoUrl(photos[0])
+          } else if (typeof photos === 'string') {
+            setPhotoUrl(photos)
+          }
         }
       })
   }, [])
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErreur('')
     setSucces('')
-
     const token = localStorage.getItem('token')
 
     try {
-      const response = await fetch(`http://localhost:3000/api/auth/updateUser/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ nom, prenom, email })
-      })
+      if (photoFile) {
+        // Avec photo - utiliser FormData et PATCH /api/auth/profil/:id
+        const formData = new FormData()
+        formData.append('photos', photoFile)
+        formData.append('nom', nom)
+        formData.append('prenom', prenom)
+        formData.append('email', email)
 
-      const data = await response.json()
-
-      if (response.ok) {
-        setSucces('Profil mis à jour avec succès!')
+        const response = await fetch(`${API_URL}/api/auth/profil/${userId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        })
+        const data = await response.json()
+        if (response.ok) {
+          const photos = data.photos
+          if (Array.isArray(photos) && photos.length > 0) {
+            setPhotoUrl(photos[0])
+          }
+          setPhotoFile(null)
+          setPhotoPreview('')
+          setSucces('Profil mis à jour avec succès!')
+        } else {
+          setErreur(data.message || 'Erreur lors de la mise à jour')
+        }
       } else {
-        setErreur(data.message || 'Erreur lors de la mise à jour')
+        // Sans photo - utiliser PUT /api/auth/updateUser/:id
+        const response = await fetch(`${API_URL}/api/auth/updateUser/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ nom, prenom, email })
+        })
+        const data = await response.json()
+        if (response.ok) {
+          setSucces('Profil mis à jour avec succès!')
+        } else {
+          setErreur(data.message || 'Erreur lors de la mise à jour')
+        }
       }
     } catch (error) {
       setErreur('Erreur de connexion au serveur')
@@ -72,8 +114,42 @@ export default function ProfilPage() {
           <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-white mr-4">← Retour</button>
           <h1 className="text-2xl font-bold">Mon profil</h1>
         </div>
-
         <div className="bg-gray-800 p-8 rounded-lg">
+
+          {/* Photo de profil */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative">
+              {photoPreview || photoUrl ? (
+                <img
+                  src={photoPreview || photoUrl}
+                  alt="Photo de profil"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-blue-600"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center border-4 border-gray-500">
+                  <span className="text-4xl">👤</span>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => document.getElementById('photoInput')?.click()}
+                className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 rounded-full w-8 h-8 flex items-center justify-center"
+              >
+                ✏️
+              </button>
+            </div>
+            <input
+              id="photoInput"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              style={{ display: 'none' }}
+            />
+            {photoPreview && (
+              <p className="text-gray-400 text-sm mt-2">Nouvelle photo sélectionnée — sauvegardez pour confirmer</p>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-gray-300 block mb-1">Prénom</label>
@@ -102,10 +178,8 @@ export default function ProfilPage() {
                 className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
               />
             </div>
-
             {erreur && <p className="text-red-400">{erreur}</p>}
             {succes && <p className="text-green-400">{succes}</p>}
-
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded font-semibold"
@@ -113,12 +187,12 @@ export default function ProfilPage() {
               Sauvegarder
             </button>
             <button
-  type="button"
-  onClick={() => router.push('/reset-password')}
-  className="w-full bg-gray-600 hover:bg-gray-700 text-white p-3 rounded font-semibold mt-2"
->
-   Changer mon mot de passe
-</button>
+              type="button"
+              onClick={() => router.push('/reset-password')}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white p-3 rounded font-semibold mt-2"
+            >
+              Changer mon mot de passe
+            </button>
           </form>
         </div>
       </div>

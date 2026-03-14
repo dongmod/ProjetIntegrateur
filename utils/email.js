@@ -1,4 +1,3 @@
-// src/utils/email.js
 import nodemailer from "nodemailer";
 //import { success } from "zod";
 

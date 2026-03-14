@@ -34,7 +34,7 @@ setUserId(payload.user_id || payload.id)
 
   const chargerVehicules = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/vehicules', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -102,7 +102,7 @@ setUserId(payload.user_id || payload.id)
     const token = getToken()
 
     try {
-      const response = await fetch('http://localhost:3000/api/vehicules', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,8 +135,8 @@ setUserId(payload.user_id || payload.id)
     const token = getToken()
 
     try {
-      const response = await fetch(`http://localhost:3000/api/vehicules/${vehiculeEdit.id}`, {
-        method: 'PUT',
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules/${vehiculeEdit.id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -166,7 +166,7 @@ setUserId(payload.user_id || payload.id)
   const handleSupprimer = async (id: string) => {
     const token = getToken()
     try {
-      await fetch(`http://localhost:3000/api/vehicules/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })

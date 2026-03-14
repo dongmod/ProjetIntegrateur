@@ -100,7 +100,7 @@ export const updateVehicule = async (req, res) => {
   res.json(data[0])
 }
 export const deleteVehicule = async (req, res) => {
-  const clientId = req.user.id
+  const clientId = req.user.user_id
   const vehiculeId = req.params.id
 
   const { error } = await supabase

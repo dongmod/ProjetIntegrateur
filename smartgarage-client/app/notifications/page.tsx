@@ -23,7 +23,7 @@ export default function NotificationsPage() {
       setNotifications(JSON.parse(saved))
     }
 
-    const socket = io('http://localhost:3000')
+    const socket = io(`${process.env.NEXT_PUBLIC_API_URL}`)
 
     socket.on('connect', () => {
       setConnected(true)

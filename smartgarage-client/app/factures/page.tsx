@@ -22,7 +22,7 @@ export default function FacturesPage() {
 
   const chargerFactures = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/factures', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/factures`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -37,7 +37,7 @@ export default function FacturesPage() {
     const token = getToken()
 
     try {
-      const response = await fetch('http://localhost:3000/api/payment/creatiopayment', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment/creatiopayment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ console.log(data)
   const handleTelecharger = async (factureId: string) => {
     const token = getToken()
     try {
-      const response = await fetch(`http://localhost:3000/api/genererfacture/${factureId}/download`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/genererfacture/${factureId}/download`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const blob = await response.blob()
@@ -83,7 +83,7 @@ console.log(data)
   const handleEnvoyerEmail = async (factureId: string) => {
     const token = getToken()
     try {
-      const response = await fetch(`http://localhost:3000/api/genererfacture/${factureId}/send-email`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/genererfacture/${factureId}/send-email`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       })

@@ -1,7 +1,7 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { io } from 'socket.io-client'
 
 export default function SuiviPage() {
   const router = useRouter()
@@ -10,6 +10,7 @@ export default function SuiviPage() {
   const [erreur, setErreur] = useState('')
 
   const getToken = () => localStorage.getItem('token')
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
   useEffect(() => {
     const token = getToken()
@@ -19,30 +20,26 @@ export default function SuiviPage() {
     }
     chargerTaches(token)
 
-    // WebSocket pour notifications en temps réel
-    const socket = new WebSocket('ws://localhost:3000')
+    // Socket.IO pour notifications en temps réel
+    const socket = io(API_URL)
 
-    socket.onopen = () => {
-      console.log('WebSocket connecté')
-    }
+    socket.on('connect', () => {
+      console.log('Socket.IO connecté')
+    })
 
-    socket.onmessage = (event) => {
-      const message = event.data
-      setNotifications(prev => [message, ...prev])
-    }
-
-    socket.onerror = (error) => {
-      console.log('WebSocket erreur:', error)
-    }
+    socket.on('rdv:update', (data: any) => {
+      setNotifications(prev => [`Statut mis à jour: ${data.data?.statut || ''}`, ...prev])
+      chargerTaches(token)
+    })
 
     return () => {
-      socket.close()
+      socket.disconnect()
     }
   }, [])
 
   const chargerTaches = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/taches', {
+      const response = await fetch(`${API_URL}/api/taches`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -77,18 +74,15 @@ export default function SuiviPage() {
           <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-white mr-4">← Retour</button>
           <h1 className="text-2xl font-bold">🔧 Suivi de mon véhicule</h1>
         </div>
-
         {erreur && <p className="text-red-400 mb-4">{erreur}</p>}
-
         {notifications.length > 0 && (
           <div className="bg-blue-900 p-4 rounded-lg mb-6">
-            <h2 className="text-lg font-semibold mb-2"> Notifications en temps réel</h2>
+            <h2 className="text-lg font-semibold mb-2">🔔 Notifications en temps réel</h2>
             {notifications.map((notif, index) => (
               <p key={index} className="text-blue-200 text-sm">{notif}</p>
             ))}
           </div>
         )}
-
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Tâches en cours</h2>
           {taches.length === 0 ? (
@@ -105,7 +99,7 @@ export default function SuiviPage() {
                       Statut: {t.statut}
                     </p>
                     {t.commentaires && (
-                      <p className="text-gray-400 mt-2"> {t.commentaires}</p>
+                      <p className="text-gray-400 mt-2">💬 {t.commentaires}</p>
                     )}
                   </div>
                 </div>
