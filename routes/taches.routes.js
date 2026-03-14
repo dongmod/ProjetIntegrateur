@@ -1,15 +1,19 @@
 import express from 'express'
-import { createTaches,updateTache,deleteTache, terminertaches,getMesTaches ,commencertaches} from '../controllers/taches.controllers.js'
+import { createTaches,updateTache,deleteTache, terminertaches,getMesTaches, getAllTaches,commencertaches } from '../controllers/taches.controllers.js'
+
+
 import { verifyToken } from '../middleware/authMiddleware.js'
 
 const router = express.Router()
 console.log("taches creer")
 // tachesRoutes.js
-router.post('/', createTaches)
-router.get('/', verifyToken, getMesTaches)
-router.put('/:id', verifyToken, updateTache)
-router.delete('/:id', verifyToken, deleteTache)
+router.get('/all',verifyToken,getAllTaches) //Nouveau 
+router.post('/', createTaches) //** 
+router.get('/', verifyToken, getMesTaches) //**  
 router.post('/commencer/:id', verifyToken, commencertaches)
 router.post('/terminer/:id', verifyToken, terminertaches)
+router.put('/:id', verifyToken, updateTache)
+router.delete('/:id', verifyToken, deleteTache)
+// router.post('/:id/verifier-vin', verifyToken, verifierVin) 
 
 export default router

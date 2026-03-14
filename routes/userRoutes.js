@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { authMiddleware, checkRole } = require('../middleware/auth');
+const { authMiddleware, checkRole } = require('../../../middleware/auth');
 const {
   createUser,
   getProfile,

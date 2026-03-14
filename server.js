@@ -1,4 +1,6 @@
+//server.js 
 import express from 'express'
+
 // importation du cron pour la planification des tâches de relance de maintenance
 import "./utils/planificateur_de_tache.js"
 import "./utils/planificationrappelavant24h.js"
@@ -14,22 +16,34 @@ import supabase from './config/supabaseClient.js';
 import paymentRoutes from "./routes/payment.routes.js";
 import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
+
 import { initSocket } from "./websocket/socket.js";
-
 import dotenv from 'dotenv'
+import profilsRoutes from './routes/profils.routes.js'
 
-// Chargement des variables d'environnement
+
+// Load env 
 dotenv.config()
 console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
+
 // Initialisation Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 
 // Initialisation Express
 const app = express();
+app.use(cors({
+    origin: ['http://localhost:3001', 'http://localhost:5173'], // Remplacez par l'URL de votre frontend
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE", "PUT","OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}))
+app.use(express.json())
+
+
+// Routes 
 
 import authRoutes from './routes/auth.routes.js'
-
 import avisroutes from './routes/avis.routes.js'
 import rendezvousRoutes from './routes/rendezvous.routes.js'
 import vehiculesRoutes from './routes/vehicules.routes.js'
@@ -45,13 +59,18 @@ import genererfactureRoutes from './routes/genererfacture.routes.js'
 import notificationsRoutes from './routes/notifications.route.js'
 import verificationmail from "./routes/confirmationmail.route.js";
 import commentaires_tachesRoutes from './routes/commentaires_taches.routes.js'
+import horairesGaragesRoutes from './routes/horaires_garages.routes.js'  ///NEW 
+import commentairesTachesRoutes from './routes/commentaires_taches.routes.js' // New 
+
+// dotenv.config()
+// console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
 
 
+//API Routes 
 
 app.use(cors({
     //origin: ["http://localhost:5173", "http://localhost:5174"],
- origin: "*",
-
+  origin: "*",
   methods: ['GET','POST','PUT','DELETE', 'PATCH'],
   credentials: true
 }));
@@ -85,7 +104,8 @@ app.post("/api/payment/webhook",
 
       const factureid = session.metadata.id
       const client_a_notifier = session.metadata.user_email
-     console.log("Session de paiement réussie pour la facture ID:", factureid, "Client à notifier:", client_a_notifier)
+    console.log("Session de paiement réussie pour la facture ID:", factureid, "Client à notifier:", client_a_notifier)
+
       await supabase
         .from("factures")
         .update({ statut: "payee" })
@@ -103,10 +123,8 @@ app.post("/api/payment/webhook",
 )
 
 
-
-
-
 app.use(express.json())
+
 // les routes
 app.use('/api/avis', avisroutes)
 app.use('/api/auth', authRoutes)
@@ -120,11 +138,14 @@ app.use('/api/commentaires_taches',commentaires_tachesRoutes)
 app.use('/api/notifications',notificationsRoutes)
 app.use('/api/stats',statsRoutes)
 app.use('/api/crenaux',crenauxRoutes)
-app.use("/api/factures", factureRoutes)
-app.use("/api/capteurs", capteursRoutes)
-app.use("/api/genererfacture", genererfactureRoutes);
 app.use("/api/auth", verificationmail);
+app.use('/api/horaires-garage',horairesGaragesRoutes) ///NEW 
 app.use("/api/payment", paymentRoutes)
+
+app.use("/api/genererfacture", genererfactureRoutes);
+app.use('/api/commentaires-taches',commentairesTachesRoutes) //New 
+app.use('/api/profils',profilsRoutes)
+
 //creation mqtt
 const mqttClient = mqtt.connect("mqtt://localhost:1883")
 
@@ -161,30 +182,33 @@ app.post("/api/vin", (req, res) => {
 })
 
 
+//START SERVER
+// const httpServer = http.createServer(app);
+// export const io = new Server(httpServer, {
+//     cors: {
+//     origin: "*",
+//     methods: ["GET", "POST", "PATCH", "DELETE","PUT","OPTIONS"]
+//     }
+// });
+
+// io.on("connection", (socket) => {
+//     console.log("Nouvelle connexion socket:", socket.id)
+
+//     socket.on("disconnect", () => {
+//     console.log("Socket déconnecté:", socket.id)
+//     })
+// })
+
+// ✅ DESPUÉS — usar initSocket() para que getIO() funcione NOUVEAU 
+const httpServer = http.createServer(app);
+const io = initSocket(httpServer);  // ← esto inicializa la variable en websocket/socket.js
+
+
+// server.listen(process.env.PORT, () => {
+httpServer.listen(process.env.PORT, () => {
+    console.log(`Serveur lancé sur le port ${process.env.PORT}`)
+    console.log("SECRET:", process.env.JWT_SECRET)
+})
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-// Création du serveur HTTP
-const server = http.createServer(app);
-// Initialisation Socket.IO
-initSocket(server);
-
-
-
-server.listen(process.env.PORT, () => {
-console.log(`Serveur lancé sur le port ${process.env.PORT}`);
-//console.log("SECRET:", process.env.JWT_SECRET)
-
-});

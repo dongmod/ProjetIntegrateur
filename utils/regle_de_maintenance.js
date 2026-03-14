@@ -1,5 +1,3 @@
-
-
 import { diff } from 'semver';
 import supabase from '../config/supabaseClient.js';
 import { creerNotification } from './rappel_maintenance.js';
