@@ -18,7 +18,6 @@ export default function Dashboard() {
         }
         setToken(t)
 
-        // Charger les infos du profil
         const payload = JSON.parse(atob(t.split('.')[1]))
         const id = payload.user_id || payload.id
 
@@ -27,16 +26,17 @@ export default function Dashboard() {
         })
             .then(res => res.json())
             .then(data => {
-                if (data[0]) {
-                    setPrenom(data[0].prenom || '')
-                    const photos = data[0].photos
-                    if (Array.isArray(photos) && photos.length > 0) {
-                        setPhotoUrl(photos[0])
-                    } else if (typeof photos === 'string') {
-                        setPhotoUrl(photos)
-                    }
-                }
-            })
+    const user = Array.isArray(data) ? data[0] : data
+    if (user) {
+        setPrenom(user.prenom || '')
+        const photos = user.photos
+        if (Array.isArray(photos) && photos.length > 0) {
+            setPhotoUrl(photos[0])
+        } else if (typeof photos === 'string') {
+            setPhotoUrl(photos)
+        }
+    }
+})
     }, [])
 
     const handleLogout = () => {

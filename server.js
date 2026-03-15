@@ -38,7 +38,7 @@ app.use(cors({
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT","OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }))
-app.use(express.json())
+
 
 
 // Routes 
@@ -145,7 +145,7 @@ app.use("/api/payment", paymentRoutes)
 app.use("/api/genererfacture", genererfactureRoutes);
 app.use('/api/commentaires-taches',commentairesTachesRoutes) //New 
 app.use('/api/profils',profilsRoutes)
-
+app.use("/api/factures", factureRoutes)
 //creation mqtt
 const mqttClient = mqtt.connect("mqtt://localhost:1883")
 
