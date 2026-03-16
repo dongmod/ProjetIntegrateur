@@ -45,8 +45,6 @@ import commentairesTachesRoutes from './routes/commentaires_taches.routes.js' //
 
 
 
-// Load env 
-dotenv.config()
 console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
 
 // Initialisation Stripe
@@ -139,7 +137,7 @@ app.use('/api/factures', factureRoutes)
 app.use("/api/genererfacture", genererfactureRoutes);
 app.use('/api/commentaires-taches',commentairesTachesRoutes) //New 
 app.use('/api/profils',profilsRoutes)
-
+app.use("/api/factures", factureRoutes)
 //creation mqtt
 const mqttClient = mqtt.connect("mqtt://localhost:1883")
 

@@ -31,19 +31,19 @@ export default function ProfilPage() {
     })
       .then(res => res.json())
       .then(data => {
-        if (data[0]) {
-          setNom(data[0].nom || '')
-          setPrenom(data[0].prenom || '')
-          setEmail(data[0].email || '')
-          // photos est un tableau dans Supabase
-          const photos = data[0].photos
-          if (Array.isArray(photos) && photos.length > 0) {
+    const user = Array.isArray(data) ? data[0] : data
+    if (user) {
+        setNom(user.nom || '')
+        setPrenom(user.prenom || '')
+        setEmail(user.email || '')
+        const photos = user.photos
+        if (Array.isArray(photos) && photos.length > 0) {
             setPhotoUrl(photos[0])
-          } else if (typeof photos === 'string') {
+        } else if (typeof photos === 'string') {
             setPhotoUrl(photos)
-          }
         }
-      })
+    }
+})
   }, [])
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +61,6 @@ export default function ProfilPage() {
 
     try {
       if (photoFile) {
-        // Avec photo - utiliser FormData et PATCH /api/auth/profil/:id
         const formData = new FormData()
         formData.append('photos', photoFile)
         formData.append('nom', nom)
@@ -86,7 +85,6 @@ export default function ProfilPage() {
           setErreur(data.message || 'Erreur lors de la mise à jour')
         }
       } else {
-        // Sans photo - utiliser PUT /api/auth/updateUser/:id
         const response = await fetch(`${API_URL}/api/auth/updateUser/${userId}`, {
           method: 'PUT',
           headers: {
@@ -115,8 +113,6 @@ export default function ProfilPage() {
           <h1 className="text-2xl font-bold">Mon profil</h1>
         </div>
         <div className="bg-gray-800 p-8 rounded-lg">
-
-          {/* Photo de profil */}
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
               {photoPreview || photoUrl ? (
