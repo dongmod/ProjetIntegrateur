@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 
 // Connexion unique partagée dans toute l'app
-const socket = io("http://localhost:3001", {
+const socket = io("http://localhost:3000", {
   autoConnect: true,
   reconnection: true,
   reconnectionDelay: 1000,

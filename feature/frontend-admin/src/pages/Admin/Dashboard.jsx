@@ -6,7 +6,8 @@ import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 import "../Dashboard.css";
 
-const API_URL = "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 const Dashboard = () => {
   const navigate = useNavigate();

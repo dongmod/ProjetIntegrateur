@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 
-const API_URL = "http://localhost:3001";
+const API_URL = "http://localhost:3000";
 
 export default function MonProfil() {
   const navigate    = useNavigate();

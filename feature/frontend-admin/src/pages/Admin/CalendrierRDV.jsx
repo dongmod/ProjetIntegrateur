@@ -498,7 +498,7 @@ import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 import socket from "../../lib/socket";
 
-const API_URL = "http://localhost:3001";
+const API_URL = "http://localhost:3000";
 
 const JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MOIS = [

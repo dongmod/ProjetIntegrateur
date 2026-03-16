@@ -597,7 +597,7 @@ import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:3001";
+const API_URL = "http://localhost:3000";
 
 const URGENCE_CONFIG = {
   haute:   { label: "Haute",   bg: "#fee2e2", color: "#991b1b", dot: "#ef4444" },

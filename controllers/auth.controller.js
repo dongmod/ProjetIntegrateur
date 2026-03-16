@@ -269,7 +269,8 @@ export const getUserbyId = async (req, res) => {
 
   if (error) return res.status(400).json(error)
 
-  res.json(data)
+  res.json([data])
+
 }
 
 

@@ -4,7 +4,8 @@ import React, { useEffect, useState, useRef } from "react";
 import Header from "../components/Header";
 import { useNavigate, useParams } from "react-router-dom";
 
-const API_URL = "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 function CommentaireBubble({ comment, currentUserId }) {
   const isMe = comment.employe_id === currentUserId;

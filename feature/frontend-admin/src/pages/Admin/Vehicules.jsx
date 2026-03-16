@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import Header from "../../components/Header";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 const STATUT_FACTURE = {
   payee:      { label: "Payée",      bg: "#d1fae5", color: "#065f46", dot: "#10b981" },

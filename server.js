@@ -22,25 +22,6 @@ import dotenv from 'dotenv'
 import profilsRoutes from './routes/profils.routes.js'
 
 
-// Load env 
-dotenv.config()
-console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
-
-// Initialisation Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-
-// Initialisation Express
-const app = express();
-app.use(cors({
-    origin: ['http://localhost:3001', 'http://localhost:5173'], // Remplacez par l'URL de votre frontend
-    credentials: true,
-    methods: ["GET", "POST", "PATCH", "DELETE", "PUT","OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}))
-app.use(express.json())
-
-
 // Routes 
 
 import authRoutes from './routes/auth.routes.js'
@@ -62,25 +43,36 @@ import commentaires_tachesRoutes from './routes/commentaires_taches.routes.js'
 import horairesGaragesRoutes from './routes/horaires_garages.routes.js'  ///NEW 
 import commentairesTachesRoutes from './routes/commentaires_taches.routes.js' // New 
 
+
+
+// Load env 
+dotenv.config()
+console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
+
+// Initialisation Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+
+// Initialisation Express
+const app = express();
+app.use(cors({
+    origin: ['http://localhost:3001', 'http://localhost:5173','http://localhost:3002','http://localhost:3003',"http://192.168.0.131:3002"], // Remplacez par l'URL de votre frontend
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE", "PUT","OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}))
+app.options("*", cors());
+
 // dotenv.config()
 // console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
 
-
-//API Routes 
-
-app.use(cors({
-    //origin: ["http://localhost:5173", "http://localhost:5174"],
-  origin: "*",
-  methods: ['GET','POST','PUT','DELETE', 'PATCH'],
-  credentials: true
-}));
 
 
 
 
 //  WEBHOOK  AVANT express.json() pour pouvoir recevoir les données brutes de Stripe
 app.post("/api/payment/webhook",
-    
+    cors(),
 
   express.raw({ type: "application/json" }),
   async (req, res) => {
@@ -124,6 +116,8 @@ app.post("/api/payment/webhook",
 
 
 app.use(express.json())
+app.set("strict routing", false);
+app.set("case sensitive routing", false);
 
 // les routes
 app.use('/api/avis', avisroutes)
@@ -141,7 +135,7 @@ app.use('/api/crenaux',crenauxRoutes)
 app.use("/api/auth", verificationmail);
 app.use('/api/horaires-garage',horairesGaragesRoutes) ///NEW 
 app.use("/api/payment", paymentRoutes)
-
+app.use('/api/factures', factureRoutes)
 app.use("/api/genererfacture", genererfactureRoutes);
 app.use('/api/commentaires-taches',commentairesTachesRoutes) //New 
 app.use('/api/profils',profilsRoutes)

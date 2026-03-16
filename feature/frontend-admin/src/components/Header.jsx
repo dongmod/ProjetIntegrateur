@@ -48,7 +48,7 @@
 import React, { useEffect, useState } from "react";
 import "./Header.css";
 
-const API_URL = "http://localhost:3001";
+const API_URL = "http://localhost:3000";
 
 const Header = ({ onLogout, onToggleMenu }) => {
   const [photo,    setPhoto]    = useState(null);
