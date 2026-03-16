@@ -182,3 +182,28 @@ Dans l'interface admin, sélectionner un device et une action:
 - CORS configuré
 - Validation des deviceId pour WebSocket
 - Journalisation des commandes
+
+
+
+## Créer un bucket de stockage
+
+Dans Supabase :
+
+Va dans Storage
+
+Clique Create bucket
+
+Nom :
+choisir public
+
+
+
+pour executer ngrok,     
+
+faites    .\ngrok http 3000
+
+
+puis copier  https://hydroptic-unimpeding-julissa.ngrok-free.dev 
+
+et coller dans email.js  pour confirmer les mail
+

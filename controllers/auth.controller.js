@@ -1,10 +1,16 @@
 import supabase from '../config/supabaseClient.js'
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken'
+import { sendVerificationEmail } from '../utils/email.js';
+
+// import { io } from "../server.js";
+
+import { getIO } from "../websocket/socket.js";
 import { schema } from "../Zod/zodcreationuser.js";
 import { schema1 } from "../Zod/validationlogin.js";
 import { verifyToken } from '../middleware/authMiddleware.js';
 import { roleFiltre } from '../middleware/filtreroleMiddleware.js';
+
 export const register = async (req, res) => {
   const { nom, prenom, email, mot_de_passe, role,confirmation_mot_de_passe } = req.body
 
@@ -25,20 +31,57 @@ if (!result.success) {
 }
 
 
-  console.log("BODY:", req.body);
-  console.log("mot_de_passe:", req.body.mot_de_passe);
   const hashedmot_de_passe = await bcrypt.hash(mot_de_passe, 10);
+//faire un token de verification du client
+const verificationToken = jwt.sign(
+  { email },
+  process.env.JWT_SECRET,
+  { expiresIn: "10m" }
+)
 
+
+
+//image upload pour les rendez-vous
+const file = req.file|| [];
+let imageUrl = null;
+console.log("FILE =", req.file)
+if (file) {
+
+  const fileName = `profil-${Date.now()}-${file.originalname}`
+
+  const { errorup } = await supabase.storage
+    .from("profil")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype
+    })
+ 
+  if (errorup) {
+    return res.status(400).json(errorup)
+  }
+
+   imageUrl =
+  `${process.env.SUPABASE_URL}/storage/v1/object/public/profil/${fileName}`
+ 
+}
+
+
+//insertion
   const { data, error } = await supabase
     .from('utilisateurs')
     .insert([
-      { nom, prenom, email, mot_de_passe: hashedmot_de_passe, role }
+      { nom, prenom, email,
+         mot_de_passe: hashedmot_de_passe, 
+         role, 
+         photos: imageUrl ? [imageUrl] : null }
     ])
     .select()
 
-  if (error) return res.status(400).json(error)
 
-  res.json(data)
+  if (error) return res.status(400).json(error)
+//envoyer le mail de verification
+  await sendVerificationEmail(email, verificationToken)
+
+  res.json({ message: "Utilisateur créé, email envoyé pour vérification", data }) 
 }
 
 export const login = async (req, res) => {
@@ -56,10 +99,7 @@ if (!result.success) {
     result.error?.issues?.[0]?.message ||
     "Merci de vérifier vos informations.";
   return res.status(400).json({ message: erreur });
-}
-
-
-
+}   
 
 
   const { data, error } = await supabase
@@ -71,6 +111,11 @@ console.log("LOGIN BODY:", req.body);
   if (error || !data) {
     return res.status(401).json({ message: 'Utilisateur non trouvé' })
   }
+if (!data.verifie) {
+  return res.status(403).json({
+    message: "Veuillez confirmer votre email"
+  })
+}
 
   const valid = await bcrypt.compare(mot_de_passe, data.mot_de_passe)
 
@@ -78,15 +123,43 @@ console.log("LOGIN BODY:", req.body);
     return res.status(401).json({ message: 'Mot de passe incorrect' })
   }
 
+  // Use user_id instead of id for JWT payload to match the database schema
   const token = jwt.sign(
-    { id: data.id, role: data.role },
+    { user_id: data.user_id, role: data.role },
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
+    
   )
 
   res.json({ token })
 }
+//get user connecté
+export const userconnected =  async (req, res) => {
+  try {
+    const userId = req.user.user_id; // ← vient du token
+    console.log("USERCONNECTED → userId =", userId);
 
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid token payload" });
+    }
+
+    const { data, error } = await supabase
+      .from("utilisateurs")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+    console.log("SUPABASE DATA =", data);
+    console.log("SUPABASE ERROR =", error);
+
+    if (error) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+};
 
 
 //delete
@@ -96,27 +169,73 @@ export const deleteUser = async (req, res) => {
   const { error } = await supabase
     .from('utilisateurs')
     .delete()
-    .eq('id', userId)
+    .eq('user_id', userId)
 
-  if (error) return res.status(400).json(error)
+  if (error) return res.status(400).json({ message: error.message })
 
   res.json({ message: "Utilisateur supprimé" })
 }
 
 
-
-
-
-
-///update
+///UPDATE USER 
 export const updateUser = async (req, res) => {
   const userId = req.params.id
-  const { nom, prenom, email, mot_de_passe, role } = req.body
+  const { nom, prenom, email, mot_de_passe, role,garage_id,telephone,preference } = req.body
+  const updateData ={nom,prenom,email,role,garage_id,telephone,preference};  //Nouveau v. 
+
+  if (mot_de_passe){
+    updateData.mot_de_passe = await bcrypt.hash(mot_de_passe,10);  
+  }   //Nouveau v. 
 
   const { data, error } = await supabase
     .from('utilisateurs')
-    .update({ nom, prenom, email, mot_de_passe, role })
-    .eq('id', userId)
+    .update(updateData)
+    .eq('user_id', userId)
+    .select()
+    .single(); 
+
+  if (error) return res.status(400).json(error)
+
+  res.json(data[0])
+}
+
+//modification du profil de l'utilisateur connecté
+export const updateProfil = async (req, res) => {
+  const Profil = req.params.id
+  const { nom, prenom, email,telephone,preference,garage_id } = req.body
+
+
+
+//image upload pour les rendez-vous
+const file = req.file|| [];
+let imageUrl = null;
+console.log("FILE =", req.file)
+if (file) {
+
+  const fileName = `profil-${Date.now()}-${file.originalname}`
+
+  const { errorup } = await supabase.storage
+    .from("profil")
+    .upload(fileName, file.buffer, {
+      contentType: file.mimetype
+    })
+ 
+  if (errorup) {
+    return res.status(400).json(errorup)
+  }
+
+   imageUrl =
+  `${process.env.SUPABASE_URL}/storage/v1/object/public/profil/${fileName}`
+ 
+}
+
+
+
+  const { data, error } = await supabase
+    .from('utilisateurs')
+    .update({ nom, prenom, email, 
+      telephone, preference, garage_id, photos: imageUrl ? [imageUrl] : null })
+    .eq('user_id', Profil)
     .select()
 
   if (error) return res.status(400).json(error)
@@ -138,26 +257,28 @@ export const getUser = async (req, res) => {
 }
 
 
-///get user by id
+///GET USER BY ID 
 export const getUserbyId = async (req, res) => {
   const userId = req.params.id
 
   const { data, error } = await supabase
     .from('utilisateurs')
     .select('*')
-    .eq('id', userId)
+    .eq('user_id', userId)
+    .single(); ///Nouveau v. 
 
   if (error) return res.status(400).json(error)
 
-  res.json(data)
+  res.json([data])
+
 }
 
 
-
-///reset mot de passe
+///RESET MOT DE PASSE 
 export const resetMot_de_passe = async (req, res) => {
   const userId = req.params.id
   const { mot_de_passe,confirmation_mot_de_passe } = req.body
+
   if(mot_de_passe !== confirmation_mot_de_passe){
     return res.status(400).json({message:"Les mots de passe ne correspondent pas"})
   }
@@ -166,8 +287,12 @@ export const resetMot_de_passe = async (req, res) => {
   const { data: userData, error: userError } = await supabase
     .from('utilisateurs')
     .select('mot_de_passe')
-    .eq('id', userId)
+    .eq('user_id', userId)
     .single()
+
+  if(userError) {
+    return res.status(400).json({message:userError.message});
+  } ///Nouveau v. 
 
   if (userData && await bcrypt.compare(confirmation_mot_de_passe, userData.mot_de_passe)) {
     return res.status(400).json({ message: "Le nouveau mot de passe doit être différent de l'ancien" })
@@ -176,10 +301,39 @@ export const resetMot_de_passe = async (req, res) => {
   const { data, error } = await supabase
     .from('utilisateurs')
     .update({ mot_de_passe: hashedmot_de_passe })
-    .eq('id', userId)
+    .eq('user_id', userId)
     .select()
 
   if (error) return res.status(400).json(error)
 
   res.json(data[0])
 }
+
+
+// ADD ME POUR OBTENIR LES INFOS DE L'UTILISATEUR LOGGUÉ.  
+export const me = async (req, res) => {
+  try {
+     console.log("ME → req.user =", req.user) // vérifier que le middleware auth fonctionne et que req.user est bien défini
+    const userId = req.user?.user_id;
+     console.log("ME → userId extrait du token =", userId) // vérifier que le user_id est bien extrait du token
+    if (!userId) {
+      return res.status(401).json({ message: "Invalid token payload (missing id)" });
+    }
+    const { data, error } = await supabase
+      .from("utilisateurs")
+      .select("user_id, nom, prenom, email, role")
+      .eq("user_id", userId)          // 👈 CAMBIAR si tu token usa user_id
+      .single();
+    
+    console.log("ME → supabase data =", data) //  vérifier la réponse de Supabase
+    console.log("ME → supabase error =", error) //  vérifier les erreurs de Supabase
+ 
+    if (error || !data) {
+      return res.status(404).json({ message: "Profil introuvable" });
+    }
+
+    return res.json(data);
+  } catch (err) {
+    return res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+};

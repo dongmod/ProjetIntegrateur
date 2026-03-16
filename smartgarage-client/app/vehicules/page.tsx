@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useRef } from 'react'
+import Tesseract from 'tesseract.js'
 
 export default function VehiculesPage() {
   const router = useRouter()
@@ -26,13 +28,13 @@ export default function VehiculesPage() {
       return
     }
     const payload = JSON.parse(atob(token.split('.')[1]))
-    setUserId(payload.id)
+setUserId(payload.user_id || payload.id)
     chargerVehicules(token)
   }, [])
 
   const chargerVehicules = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/vehicules', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await response.json()
@@ -64,6 +66,34 @@ export default function VehiculesPage() {
       setErreur('Erreur lors du décodage du VIN')
     }
   }
+  const handleImage = async (e: any) => {
+  const file = e.target.files[0]
+  let text = ""
+
+  try {
+    const { data: { text: extractedText } } = await Tesseract.recognize(
+      file,
+      "eng+fra",
+      { logger: (m) => console.log(m) }
+    )
+
+    text = extractedText
+    console.log("Texte extrait :", text)
+
+  } catch (err) {
+    console.error("Erreur OCR :", err)
+  }
+
+  const vinRegex = /\b[A-HJ-NPR-Z0-9]{17}\b/g
+  const found = text.match(vinRegex)
+
+  if (found) {
+    setVin(found[0])
+    scannerVIN(found[0])
+  } else {
+    setErreur("Aucun VIN détecté")
+  }
+}
 
   const handleAjouter = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,13 +102,13 @@ export default function VehiculesPage() {
     const token = getToken()
 
     try {
-      const response = await fetch('http://localhost:3000/api/vehicules', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ marque, modele, annee, vin, plaque, utilisateur_id: userId })
+        body: JSON.stringify({ marque, modele, annee, plaque, vin: vin || null })
       })
 
       const data = await response.json()
@@ -105,8 +135,8 @@ export default function VehiculesPage() {
     const token = getToken()
 
     try {
-      const response = await fetch(`http://localhost:3000/api/vehicules/${vehiculeEdit.id}`, {
-        method: 'PUT',
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules/${vehiculeEdit.id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
@@ -136,7 +166,7 @@ export default function VehiculesPage() {
   const handleSupprimer = async (id: string) => {
     const token = getToken()
     try {
-      await fetch(`http://localhost:3000/api/vehicules/${id}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vehicules/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -149,7 +179,7 @@ export default function VehiculesPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="flex items-center">
             <button onClick={() => router.push('/dashboard')} className="text-gray-400 hover:text-white mr-4">← Retour</button>
             <h1 className="text-2xl font-bold">🚗 Mes véhicules</h1>
@@ -223,6 +253,24 @@ export default function VehiculesPage() {
                     className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
                     placeholder="1HGBH41JXMN109186"
                   />
+                  <div className="mt-2">
+                  <button
+  type="button"
+  onClick={() => document.getElementById('vinFile')?.click()}
+  className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded mt-2"
+>
+  Scanner VIN
+</button>
+
+<input
+  id="vinFile"
+  type="file"
+  accept="image/*"
+  capture="environment"
+  onChange={handleImage}
+  style={{ display: "none" }}
+/>
+                        </div>
                 </div>
               </div>
 
@@ -281,16 +329,61 @@ export default function VehiculesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-gray-300 block mb-1">VIN</label>
-                  <input
-                    type="text"
-                    value={vehiculeEdit.vin || ''}
-                    onChange={(e) => setVehiculeEdit({...vehiculeEdit, vin: e.target.value})}
-                    className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
-                  />
-                </div>
+  <label className="text-gray-300 block mb-1">VIN</label>
+  <input
+    type="text"
+    value={vehiculeEdit.vin || ''}
+    onChange={(e) => setVehiculeEdit({ ...vehiculeEdit, vin: e.target.value })}
+    className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600"
+  />
+
+  <div className="mt-2">
+    <button
+      type="button"
+      onClick={() => document.getElementById('vinFileEdit')?.click()}
+      className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded"
+    >
+      Scanner VIN
+    </button>
+
+    <input
+      id="vinFileEdit"
+      type="file"
+      accept="image/*"
+      onChange={async (e) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        let text = ""
+
+        try {
+          const { data: { text: extractedText } } = await Tesseract.recognize(
+            file,
+            "eng+fra",
+            { logger: (m) => console.log(m) }
+          )
+          text = extractedText
+        } catch (err) {
+          console.error("Erreur OCR :", err)
+          setErreur("Erreur OCR")
+          return
+        }
+
+        const vinRegex = /\b[A-HJ-NPR-Z0-9]{17}\b/g
+        const found = text.match(vinRegex)
+
+        if (found) {
+          setVehiculeEdit({ ...vehiculeEdit, vin: found[0] })
+        } else {
+          setErreur("Aucun VIN détecté")
+        }
+      }}
+      style={{ display: "none" }}
+    />
+  </div>
+</div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded">
                   Sauvegarder
                 </button>
@@ -314,7 +407,7 @@ export default function VehiculesPage() {
                   <p className="text-gray-400">Plaque: {v.plaque}</p>
                   {v.vin && <p className="text-gray-400">VIN: {v.vin}</p>}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 mt-2">
                   <button
                     onClick={() => setVehiculeEdit(v)}
                     className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded"

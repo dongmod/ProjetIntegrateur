@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  const socket = io("http://localhost:3001");
+
+  socket.on("connect", () => {
+    console.log("Connecté au serveur :", socket.id);
+  });
+
+  socket.on("rdv:update", (data) => {
+    console.log(" Mise à jour RDV reçue :", data);
+  });
+
+   socket.on("rdv:create", (data) => {
+    console.log(" Création RDV reçue :", data);
+  });
+
+  socket.on("rdv:delete", (payload) => {
+    console.log(" Suppression RDV reçue :", payload);
+  });
+</script>
+</body>
+</html>

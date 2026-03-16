@@ -1,5 +1,5 @@
 import supabase from '../config/supabaseClient.js'
-
+import { getIO } from "../websocket/socket.js";
 export const createCommentaires_taches = async (req, res) => {
   const { tache_id, employe_id, contenu,visible_client } = req.body
 
@@ -42,4 +42,26 @@ export const createCommentaires_taches = async (req, res) => {
     })
   }
 }
-        
+
+
+/// NOUVEAU to get all commentaires 
+export const getCommentairesTache = async (req, res) => {
+  const { tache_id } = req.params
+  try {
+    const { data, error } = await supabase
+      .from('commentaires_tache')
+      .select(`
+        *,
+        utilisateurs:employe_id (
+          nom, prenom
+        )
+      `)
+      .eq('tache_id', tache_id)
+      .order('created_at', { ascending: true })
+
+    if (error) return res.status(400).json(error)
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", err })
+  }
+}

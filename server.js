@@ -1,7 +1,31 @@
+//server.js 
 import express from 'express'
+
+// importation du cron pour la planification des tâches de relance de maintenance
+import "./utils/planificateur_de_tache.js"
+import "./utils/planificationrappelavant24h.js"
+import "./utils/tache_verifie_activite_capteur.js"
+import Stripe from "stripe";
+import http from "http";
+import "./mqtt/mqttClient.js"
+import { Server } from "socket.io";
+//mqtt
+import mqtt from 'mqtt';
+import supabase from './config/supabaseClient.js';
+//import from payment routes
+import paymentRoutes from "./routes/payment.routes.js";
+import { confirmationpaiement } from './utils/confirmationpaiement.js';
 import cors from 'cors'
+
+import { initSocket } from "./websocket/socket.js";
 import dotenv from 'dotenv'
+import profilsRoutes from './routes/profils.routes.js'
+
+
+// Routes 
+
 import authRoutes from './routes/auth.routes.js'
+import avisroutes from './routes/avis.routes.js'
 import rendezvousRoutes from './routes/rendezvous.routes.js'
 import vehiculesRoutes from './routes/vehicules.routes.js'
 import garageRoutes from './routes/garage.route.js'
@@ -10,18 +34,92 @@ import tachesRoutes from './routes/taches.routes.js'
 import statsRoutes from './routes/stats.routes.js'
 import servicesRoutes from './routes/services.routes.js'
 import crenauxRoutes from './routes/crenaux.routes.js'
+import factureRoutes from './routes/facture.routes.js'
+import capteursRoutes from './routes/capteurs.routes.js'
+import genererfactureRoutes from './routes/genererfacture.routes.js'
 import notificationsRoutes from './routes/notifications.route.js'
+import verificationmail from "./routes/confirmationmail.route.js";
 import commentaires_tachesRoutes from './routes/commentaires_taches.routes.js'
-dotenv.config()
+import horairesGaragesRoutes from './routes/horaires_garages.routes.js'  ///NEW 
+import commentairesTachesRoutes from './routes/commentaires_taches.routes.js' // New 
+
+
+
 console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
 
-const app = express()
+// Initialisation Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-app.use(cors())
+
+// Initialisation Express
+const app = express();
+app.use(cors({
+    origin: ['http://localhost:3001', 'http://localhost:5173','http://localhost:3002','http://localhost:3003',"http://192.168.0.131:3002"], // Remplacez par l'URL de votre frontend
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE", "PUT","OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}))
+app.options("*", cors());
+
+// dotenv.config()
+// console.log("JWT_SECRET utilisé par le serveur :", process.env.JWT_SECRET)
+
+
+
+
+
+//  WEBHOOK  AVANT express.json() pour pouvoir recevoir les données brutes de Stripe
+app.post("/api/payment/webhook",
+    cors(),
+
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+
+    const sig = req.headers["stripe-signature"]
+
+    let event
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      )
+    } catch (err) {
+      console.log(" Signature invalide:", err.message)
+      return res.status(400).send(`Webhook Error: ${err.message}`)
+    }
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object
+
+      const factureid = session.metadata.id
+      const client_a_notifier = session.metadata.user_email
+    console.log("Session de paiement réussie pour la facture ID:", factureid, "Client à notifier:", client_a_notifier)
+
+      await supabase
+        .from("factures")
+        .update({ statut: "payee" })
+        .eq("id", factureid)
+        console.log(" Paiement confirmé pour facture:", factureid)
+    
+        confirmationpaiement(client_a_notifier, factureid)
+
+    }
+
+
+
+    res.json({ received: true })
+  }
+)
+
+
 app.use(express.json())
+app.set("strict routing", false);
+app.set("case sensitive routing", false);
 
+// les routes
+app.use('/api/avis', avisroutes)
 app.use('/api/auth', authRoutes)
-
 app.use('/api/rendezvous', rendezvousRoutes)
 app.use('/api/garages', garageRoutes)
 app.use('/api/vehicules', vehiculesRoutes)
@@ -32,8 +130,77 @@ app.use('/api/commentaires_taches',commentaires_tachesRoutes)
 app.use('/api/notifications',notificationsRoutes)
 app.use('/api/stats',statsRoutes)
 app.use('/api/crenaux',crenauxRoutes)
-app.listen(process.env.PORT, () => {
-console.log(`Serveur lancé sur le port ${process.env.PORT}`)
-console.log("SECRET:", process.env.JWT_SECRET)
+app.use("/api/auth", verificationmail);
+app.use('/api/horaires-garage',horairesGaragesRoutes) ///NEW 
+app.use("/api/payment", paymentRoutes)
+app.use('/api/factures', factureRoutes)
+app.use("/api/genererfacture", genererfactureRoutes);
+app.use('/api/commentaires-taches',commentairesTachesRoutes) //New 
+app.use('/api/profils',profilsRoutes)
+app.use("/api/factures", factureRoutes)
+//creation mqtt
+const mqttClient = mqtt.connect("mqtt://localhost:1883")
 
+mqttClient.on("connect", () => {
+  //apres connexion on verifie
+  console.log("Connecté au broker MQTT")
 })
+
+
+
+
+// Route réception VIN
+app.post("/api/vin", (req, res) => {
+  const { vin } = req.body
+
+  const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/
+
+  if (!vin || !vinRegex.test(vin)) {
+    return res.status(400).json({ message: "VIN invalide" })
+  }
+
+  const payload = {
+    sensor_id: "af3979a0-791e-4cfe-bcc1-67b795de8c24",
+    vin: vin,
+    type: "lecteur_vin",
+    timestamp: new Date().toISOString()
+  }
+
+  mqttClient.publish("garage/capteurvin", JSON.stringify(payload))
+
+  console.log("VIN envoyé via MQTT →", payload)
+
+  res.json({ message: "VIN envoyé au système" })
+})
+
+
+//START SERVER
+// const httpServer = http.createServer(app);
+// export const io = new Server(httpServer, {
+//     cors: {
+//     origin: "*",
+//     methods: ["GET", "POST", "PATCH", "DELETE","PUT","OPTIONS"]
+//     }
+// });
+
+// io.on("connection", (socket) => {
+//     console.log("Nouvelle connexion socket:", socket.id)
+
+//     socket.on("disconnect", () => {
+//     console.log("Socket déconnecté:", socket.id)
+//     })
+// })
+
+// ✅ DESPUÉS — usar initSocket() para que getIO() funcione NOUVEAU 
+const httpServer = http.createServer(app);
+const io = initSocket(httpServer);  // ← esto inicializa la variable en websocket/socket.js
+
+
+// server.listen(process.env.PORT, () => {
+httpServer.listen(process.env.PORT, () => {
+    console.log(`Serveur lancé sur le port ${process.env.PORT}`)
+    console.log("SECRET:", process.env.JWT_SECRET)
+})
+
+
+
